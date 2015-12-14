@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <resourceExtensions />
+    <wildcardResourcePatterns>
+      <entry name="!?*.java" />
+      <entry name="!?*.form" />
+      <entry name="!?*.class" />
+      <entry name="!?*.groovy" />
+      <entry name="!?*.scala" />
+      <entry name="!?*.flex" />
+      <entry name="!?*.kt" />
+      <entry name="!?*.clj" />
+      <entry name="!?*.aj" />
+    </wildcardResourcePatterns>
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="false">
+        <processorPath useClasspath="true" />
+      </profile>
+      <profile default="false" name="Annotation profile for hbase-shaded-client" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="hbase-shaded-client" />
+      </profile>
+      <profile default="false" name="Annotation profile for hbase-shaded-server" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="hbase-shaded-server" />
+      </profile>
+      <profile default="false" name="Annotation profile for hbase-checkstyle" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="hbase-checkstyle" />
+      </profile>
+      <profile default="false" name="Annotation profile for hbase-hadoop2-compat" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="hbase-hadoop2-compat" />
+      </profile>
+      <profile default="false" name="Annotation profile for hbase-prefix-tree" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="hbase-prefix-tree" />
+      </profile>
+      <profile default="false" name="Annotation profile for hbase-annotations" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="hbase-annotations" />
+      </profile>
+      <profile default="false" name="Annotation profile for hbase-testing-util" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="hbase-testing-util" />
+      </profile>
+      <profile default="false" name="Annotation profile for hbase-client" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="hbase-client" />
+      </profile>
+      <profile default="false" name="Annotation profile for hbase-hadoop-compat" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="hbase-hadoop-compat" />
+      </profile>
+      <profile default="false" name="Annotation profile for hbase-shell" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="hbase-shell" />
+      </profile>
+      <profile default="false" name="Annotation profile for hbase-protocol" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="hbase-protocol" />
+      </profile>
+      <profile default="false" name="Annotation profile for hbase-it" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="hbase-it" />
+      </profile>
+      <profile default="false" name="Annotation profile for hbase-examples" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="hbase-examples" />
+      </profile>
+      <profile default="false" name="Annotation profile for hbase-common" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="hbase-common" />
+      </profile>
+      <profile default="false" name="Annotation profile for hbase-procedure" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="hbase-procedure" />
+      </profile>
+      <profile default="false" name="Annotation profile for hbase-thrift" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="hbase-thrift" />
+      </profile>
+      <profile default="false" name="Annotation profile for hbase-rest" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="hbase-rest" />
+      </profile>
+      <profile default="false" name="Annotation profile for hbase-resource-bundle" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="hbase-resource-bundle" />
+      </profile>
+      <profile default="false" name="Annotation profile for hbase-server" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="hbase-server" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="hbase" target="1.5" />
+      <module name="hbase-annotations" target="1.7" />
+      <module name="hbase-assembly" target="1.5" />
+      <module name="hbase-checkstyle" target="1.7" />
+      <module name="hbase-client" target="1.7" />
+      <module name="hbase-common" target="1.7" />
+      <module name="hbase-examples" target="1.7" />
+      <module name="hbase-hadoop-compat" target="1.7" />
+      <module name="hbase-hadoop2-compat" target="1.7" />
+      <module name="hbase-it" target="1.7" />
+      <module name="hbase-prefix-tree" target="1.7" />
+      <module name="hbase-procedure" target="1.7" />
+      <module name="hbase-protocol" target="1.7" />
+      <module name="hbase-resource-bundle" target="1.7" />
+      <module name="hbase-rest" target="1.7" />
+      <module name="hbase-server" target="1.7" />
+      <module name="hbase-shaded" target="1.5" />
+      <module name="hbase-shaded-client" target="1.7" />
+      <module name="hbase-shaded-server" target="1.7" />
+      <module name="hbase-shell" target="1.7" />
+      <module name="hbase-testing-util" target="1.7" />
+      <module name="hbase-thrift" target="1.7" />
+    </bytecodeTargetLevel>
+  </component>
+</project>
