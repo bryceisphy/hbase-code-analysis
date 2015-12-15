@@ -91,7 +91,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  */
 @InterfaceAudience.LimitedPrivate(HBaseInterfaceAudience.TOOLS)
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class ThriftServer {
+public class ThriftServer {                           //thrift服务一般都在这个类中
   private static final Log log = LogFactory.getLog(ThriftServer.class);
 
   /**
@@ -147,7 +147,7 @@ public class ThriftServer {
     return parser.parse(options, remainingArgs);
   }
 
-  private static TProtocolFactory getTProtocolFactory(boolean isCompact) {
+  private static TProtocolFactory getTProtocolFactory(boolean isCompact) {      //hbase支持两种格式
     if (isCompact) {
       log.debug("Using compact protocol");
       return new TCompactProtocol.Factory();

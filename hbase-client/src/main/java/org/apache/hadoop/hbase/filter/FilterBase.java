@@ -37,7 +37,7 @@ import org.apache.hadoop.hbase.KeyValueUtil;
  * that is one that never filters anything.
  */
 @InterfaceAudience.Private // TODO add filter limited private level
-public abstract class FilterBase extends Filter {
+public abstract class FilterBase extends Filter {   //HBase的Filter基类,各Filter需要实现该类
 
   /**
    * Filters that are purely stateless and do nothing in their reset() methods can inherit

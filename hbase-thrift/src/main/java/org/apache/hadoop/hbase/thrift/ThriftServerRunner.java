@@ -180,7 +180,7 @@ public class ThriftServerRunner implements Runnable {
   private final int listenPort;
 
   private Configuration conf;
-  volatile TServer tserver;
+  volatile TServer tserver;           //thrift服务端线程
   volatile Server httpServer;
   private final Hbase.Iface handler;
   private final ThriftMetrics metrics;
@@ -430,7 +430,7 @@ public class ThriftServerRunner implements Runnable {
    */
   private void setupServer() throws Exception {
     // Construct correct ProtocolFactory
-    TProtocolFactory protocolFactory;
+    TProtocolFactory protocolFactory;             //指定协议
     if (conf.getBoolean(COMPACT_CONF_KEY, false)) {
       LOG.debug("Using compact protocol");
       protocolFactory = new TCompactProtocol.Factory();
@@ -444,7 +444,7 @@ public class ThriftServerRunner implements Runnable {
     TProcessor processor = p;
 
     // Construct correct TransportFactory
-    TTransportFactory transportFactory;
+    TTransportFactory transportFactory;             //指定传输
     if (conf.getBoolean(FRAMED_CONF_KEY, false) || implType.isAlwaysFramed) {
       if (qop != null) {
         throw new RuntimeException("Thrift server authentication"

@@ -82,7 +82,7 @@ public class ThriftMetrics  {
     source.incMethodTime(name, time);
     // inc general processTime
     source.incCall(time);
-    if (time > slowResponseTime) {
+    if (time > slowResponseTime) {          //慢查询计数加一
       source.incSlowCall(time);
     }
   }

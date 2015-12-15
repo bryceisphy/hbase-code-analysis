@@ -282,7 +282,7 @@ public class TBoundedThreadPoolServer extends TServer {
         processor = processorFactory_.getProcessor(client);
         inputTransport = inputTransportFactory_.getTransport(client);
         outputTransport = outputTransportFactory_.getTransport(client);
-        inputProtocol = inputProtocolFactory_.getProtocol(inputTransport);
+        inputProtocol = inputProtocolFactory_.getProtocol(inputTransport);          //HBase-11052
         outputProtocol = outputProtocolFactory_.getProtocol(outputTransport);
         // we check stopped_ first to make sure we're not supposed to be shutting
         // down. this is necessary for graceful shutdown.
