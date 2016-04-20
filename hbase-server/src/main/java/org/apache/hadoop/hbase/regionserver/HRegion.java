@@ -1762,10 +1762,10 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
       store.cancelRequestedCompaction(compaction);
       return false;
     }
-    MonitoredTask status = null;
-    boolean requestNeedsCancellation = true;
+    MonitoredTask status = null;                      //任务状态监控器
+    boolean requestNeedsCancellation = true;          //标志位,请求需要撤销
     // block waiting for the lock for compaction
-    lock.readLock().lock();
+    lock.readLock().lock();                           //获取读锁
     try {
       byte[] cf = Bytes.toBytes(store.getColumnFamilyName());
       if (stores.get(cf) != store) {
@@ -1776,7 +1776,7 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
       }
 
       status = TaskMonitor.get().createStatus("Compacting " + store + " in " + this);
-      if (this.closed.get()) {
+      if (this.closed.get()) {                    //如果Region已下线,跳过合并
         String msg = "Skipping compaction on " + this + " because closed";
         LOG.debug(msg);
         status.abort(msg);
@@ -1785,10 +1785,10 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
       boolean wasStateSet = false;
       try {
         synchronized (writestate) {
-          if (writestate.writesEnabled) {
+          if (writestate.writesEnabled) {     //如果Region可写,累加合并进行的计数
             wasStateSet = true;
             ++writestate.compacting;
-          } else {
+          } else {                            //否则纪录log信息,丢掉该状态
             String msg = "NOT compacting region " + this + ". Writes disabled.";
             LOG.info(msg);
             status.abort(msg);
@@ -1803,7 +1803,7 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
           // We no longer need to cancel the request on the way out of this
           // method because Store#compact will clean up unconditionally
           requestNeedsCancellation = false;
-          store.compact(compaction, throughputController);
+          store.compact(compaction, throughputController);  //调用store的compact方法
         } catch (InterruptedIOException iioe) {
           String msg = "compaction interrupted";
           LOG.info(msg, iioe);
@@ -1815,12 +1815,12 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
           synchronized (writestate) {
             --writestate.compacting;
             if (writestate.compacting <= 0) {
-              writestate.notifyAll();
+              writestate.notifyAll();       //如果没有合并在进行,唤醒其它线程
             }
           }
         }
       }
-      status.markComplete("Compaction complete");
+      status.markComplete("Compaction complete");   //任务状态监控器:合并完成
       return true;
     } finally {
       try {
@@ -1867,18 +1867,18 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
       LOG.debug(msg);
       return new FlushResultImpl(FlushResult.Result.CANNOT_FLUSH, msg, false);
     }
-    MonitoredTask status = TaskMonitor.get().createStatus("Flushing " + this);
+    MonitoredTask status = TaskMonitor.get().createStatus("Flushing " + this);  //获取任务追踪器,并创建初始状态
     status.setStatus("Acquiring readlock on region");
     // block waiting for the lock for flushing cache
-    lock.readLock().lock();                           //这步fush操作是加了锁的
+    lock.readLock().lock();                           //请求region读锁lock
     try {
-      if (this.closed.get()) {
+      if (this.closed.get()) {                        //region已经下线
         String msg = "Skipping flush on " + this + " because closed";
         LOG.debug(msg);
         status.abort(msg);
         return new FlushResultImpl(FlushResult.Result.CANNOT_FLUSH, msg, false);
       }
-      if (coprocessorHost != null) {
+      if (coprocessorHost != null) {                  //协处理器不为空,执行协处理器方法
         status.setStatus("Running coprocessor pre-flush hooks");
         coprocessorHost.preFlush();
       }
@@ -1892,7 +1892,7 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
         if (!writestate.flushing && writestate.writesEnabled) {
           this.writestate.flushing = true;
         } else {
-          if (LOG.isDebugEnabled()) {
+          if (LOG.isDebugEnabled()) {               //该region已经由其它线程调用刷新
             LOG.debug("NOT flushing memstore for region " + this
                 + ", flushing=" + writestate.flushing + ", writesEnabled="
                 + writestate.writesEnabled);
@@ -1909,25 +1909,25 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
         Collection<Store> specificStoresToFlush =
             forceFlushAllStores ? stores.values() : flushPolicy.selectStoresToFlush();
         FlushResult fs = internalFlushcache(specificStoresToFlush,
-          status, writeFlushRequestWalMarker);   //flush调用internalFlushcache
+          status, writeFlushRequestWalMarker);      //执行真正的flush方法internalFlushcache
 
         if (coprocessorHost != null) {
           status.setStatus("Running post-flush coprocessor hooks");
           coprocessorHost.postFlush();
         }
 
-        status.markComplete("Flush successful");
+        status.markComplete("Flush successful");      //状态追踪器标记完成flush
         return fs;
       } finally {
-        synchronized (writestate) {
+        synchronized (writestate) {                   //将writestate中的相关状态置为false
           writestate.flushing = false;
           this.writestate.flushRequested = false;
           writestate.notifyAll();
         }
       }
     } finally {
-      lock.readLock().unlock();
-      status.cleanup();
+      lock.readLock().unlock();       //释放读锁
+      status.cleanup();               //释放状态追踪器
     }
   }
 
@@ -2065,17 +2065,17 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
       MonitoredTask status, boolean writeFlushWalMarker)
           throws IOException {
 
-    if (this.rsServices != null && this.rsServices.isAborted()) {
+    if (this.rsServices != null && this.rsServices.isAborted()) {   //首先判断regionserver服务是否正常
       // Don't flush when server aborting, it's unsafe
       throw new IOException("Aborting flush because server is aborted...");
     }
     final long startTime = EnvironmentEdgeManager.currentTime();
     // If nothing to flush, return, but we need to safely update the region sequence id
-    if (this.memstoreSize.get() <= 0) {
+    if (this.memstoreSize.get() <= 0) {     //没有可以更新的缓存,直接返回,但是需要安全地更新sequence id
       // Take an update lock because am about to change the sequence id and we want the sequence id
       // to be at the border of the empty memstore.
       MultiVersionConsistencyControl.WriteEntry w = null;
-      this.updatesLock.writeLock().lock();
+      this.updatesLock.writeLock().lock();            //获取更新锁的写锁
       try {
         if (this.memstoreSize.get() <= 0) {
           // Presume that if there are still no edits in the memstore, then there are no edits for
@@ -2130,9 +2130,9 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
     MultiVersionConsistencyControl.WriteEntry w = null;
     // We have to take an update lock during snapshot, or else a write could end up in both snapshot
     // and memstore (makes it difficult to do atomic rows then)
-    status.setStatus("Obtaining lock to block concurrent updates");
+    status.setStatus("Obtaining lock to block concurrent updates");  //获取锁以阻塞数据更新
     // block waiting for the lock for internal flush
-    this.updatesLock.writeLock().lock();
+    this.updatesLock.writeLock().lock();          //以下开始创建该region的快照
     status.setStatus("Preparing to flush by snapshotting stores in " +
       getRegionInfo().getEncodedName());
     long totalFlushableSizeOfFlushableStores = 0;
@@ -2145,10 +2145,10 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
     TreeMap<byte[], StoreFlushContext> storeFlushCtxs
       = new TreeMap<byte[], StoreFlushContext>(Bytes.BYTES_COMPARATOR);
     TreeMap<byte[], List<Path>> committedFiles = new TreeMap<byte[], List<Path>>(
-        Bytes.BYTES_COMPARATOR);
+        Bytes.BYTES_COMPARATOR);     //创建两个缓存容器用来存储刷新过程中的刷新上下文和已完成文件路径
     // The sequence id of this flush operation which is used to log FlushMarker and pass to
     // createFlushContext to use as the store file's sequence id.
-    long flushOpSeqId = HConstants.NO_SEQNUM;
+    long flushOpSeqId = HConstants.NO_SEQNUM;         //创建刷新的序列号
     // The max flushed sequence id after this flush operation. Used as completeSequenceId which is
     // passed to HMaster.
     long flushedSeqId = HConstants.NO_SEQNUM;
@@ -2157,8 +2157,8 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
     long trxId = 0;
     try {
       try {
-        w = mvcc.beginMemstoreInsert();
-        if (wal != null) {
+        w = mvcc.beginMemstoreInsert();             //mvcc推进一次写事务
+        if (wal != null) {                          //刷新序列号flushOpSeqId&flushedSeqId
           Long earliestUnflushedSequenceIdForTheRegion =
               wal.startCacheFlush(encodedRegionName, flushedFamilyNames);
           if (earliestUnflushedSequenceIdForTheRegion == null) {
@@ -2179,14 +2179,14 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
           flushedSeqId = flushOpSeqId = myseqid;
         }
 
-        for (Store s : storesToFlush) {
+        for (Store s : storesToFlush) {       //循环遍历该region的所有storefile,初始化storeFlushCtxs&committedFiles
           totalFlushableSizeOfFlushableStores += s.getFlushableSize();
           storeFlushCtxs.put(s.getFamily().getName(), s.createFlushContext(flushOpSeqId));
           committedFiles.put(s.getFamily().getName(), null); // for writing stores to WAL
         }
 
         // write the snapshot start to WAL
-        if (wal != null && !writestate.readOnly) {
+        if (wal != null && !writestate.readOnly) {    //在wal中写一个刷新的开始标记,并获取一个事务ID
           FlushDescriptor desc = ProtobufUtil.toFlushDescriptor(FlushAction.START_FLUSH,
             getRegionInfo(), flushOpSeqId, committedFiles);
           // no sync. Sync is below where we do not hold the updates lock
@@ -2196,7 +2196,7 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
 
         // Prepare flush (take a snapshot)
         for (StoreFlushContext flush : storeFlushCtxs.values()) {
-          flush.prepare();
+          flush.prepare();                      //快照生成工作在这里（刷新前）
         }
       } catch (IOException ex) {
         if (wal != null) {
@@ -2217,11 +2217,11 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
           throw ex; // let upper layers deal with it.
         }
       } finally {
-        this.updatesLock.writeLock().unlock();
+        this.updatesLock.writeLock().unlock();      //释放写锁
       }
       String s = "Finished memstore snapshotting " + this +
         ", syncing WAL and waiting on mvcc, flushsize=" + totalFlushableSizeOfFlushableStores;
-      status.setStatus(s);
+      status.setStatus(s);                  //设置跟踪器的状态,完成memstore的snapshot创建
       if (LOG.isTraceEnabled()) LOG.trace(s);
       // sync unflushed WAL changes
       // see HBASE-8208 for details
@@ -2304,7 +2304,7 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
       // tmp directory.
 
       for (StoreFlushContext flush : storeFlushCtxs.values()) {
-        flush.flushCache(status);                                  //先调用StoreFlushContext.flushCache()
+        flush.flushCache(status);                                  //调用HStore的flushCache(),数据真正写入文件
       }
 
       // Switch snapshot (in memstore) -> new hfile (thus causing
@@ -2312,7 +2312,7 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
       Iterator<Store> it = storesToFlush.iterator();
       // stores.values() and storeFlushCtxs have same order
       for (StoreFlushContext flush : storeFlushCtxs.values()) {
-        boolean needsCompaction = flush.commit(status);           //然后调用先调用StoreFlushContext.commit()
+        boolean needsCompaction = flush.commit(status);           //然后对每个storeFlushCtxs执行commit操作
         if (needsCompaction) {
           compactionRequested = true;
         }
@@ -2321,9 +2321,9 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
       storeFlushCtxs.clear();
 
       // Set down the memstore size by amount of flush.
-      this.addAndGetGlobalMemstoreSize(-totalFlushableSizeOfFlushableStores);
+      this.addAndGetGlobalMemstoreSize(-totalFlushableSizeOfFlushableStores);  //更正memstore的大小
 
-      if (wal != null) {
+      if (wal != null) {                  //将flush标记写入WAL,同时执行sync
         // write flush marker to WAL. If fail, we should throw DroppedSnapshotException
         FlushDescriptor desc = ProtobufUtil.toFlushDescriptor(FlushAction.COMMIT_FLUSH,
           getRegionInfo(), flushOpSeqId, committedFiles);
@@ -2371,7 +2371,7 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
     }
 
     // If we get to here, the HStores have been written.
-    if (wal != null) {
+    if (wal != null) {      //调用completeCacheFlush方法完成Memstore的flush
       wal.completeCacheFlush(this.getRegionInfo().getEncodedNameAsBytes());
     }
 
@@ -2389,7 +2389,7 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
     // C. Finally notify anyone waiting on memstore to clear:
     // e.g. checkResources().
     synchronized (this) {
-      notifyAll(); // FindBugs NN_NAKED_NOTIFY
+      notifyAll(); // FindBugs NN_NAKED_NOTIFY  唤醒所有等待memstore的线程
     }
 
     long time = EnvironmentEdgeManager.currentTime() - startTime;
@@ -2402,12 +2402,12 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
         + flushOpSeqId +  ", compaction requested=" + compactionRequested
         + ((wal == null) ? "; wal=null" : "");
     LOG.info(msg);
-    status.setStatus(msg);
+    status.setStatus(msg);        //设置状态为完成
 
     return new FlushResultImpl(compactionRequested ?
         FlushResult.Result.FLUSHED_COMPACTION_NEEDED :
           FlushResult.Result.FLUSHED_NO_COMPACTION_NEEDED,
-        flushOpSeqId);
+        flushOpSeqId);            //返回flush结果
   }
 
   /**
@@ -2613,7 +2613,7 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
     // 'rough' in that between the resource check and the call to obtain a
     // read lock, resources may run out.  For now, the thought is that this
     // will be extremely rare; we'll deal with it when it happens.
-    checkResources();
+    checkResources();     //put操作前先检查是否需要flush
     startRegionOperation(Operation.PUT);
     try {
       // All edits for the given row (across all column families) must happen atomically.
@@ -2783,23 +2783,23 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
   OperationStatus[] batchMutate(BatchOperationInProgress<?> batchOp) throws IOException {
     boolean initialized = false;
     Operation op = batchOp.isInReplay() ? Operation.REPLAY_BATCH_MUTATE : Operation.BATCH_MUTATE;
-    startRegionOperation(op);
+    startRegionOperation(op);       //开始Region上的操作
     try {
-      while (!batchOp.isDone()) {
+      while (!batchOp.isDone()) {   //操作未完成前一直循环
         if (!batchOp.isInReplay()) {
           checkReadOnly();              //判断是否是只读状态
         }
-        checkResources();
+        checkResources();               //检查相关资源
 
         if (!initialized) {
-          this.writeRequestsCount.add(batchOp.operations.length);
+          this.writeRequestsCount.add(batchOp.operations.length);   //更新写请求计数器
           if (!batchOp.isInReplay()) {
             doPreMutationHook(batchOp);
           }
           initialized = true;
         }
         long addedSize = doMiniBatchMutation(batchOp);    //最终的put操作是落在这里的
-        long newSize = this.addAndGetGlobalMemstoreSize(addedSize);
+        long newSize = this.addAndGetGlobalMemstoreSize(addedSize);     //以原子操作的方式增加Region上的MemStore内存的大小
         if (isFlushSize(newSize)) {    //判断memstore的大小是否达到阈值,决定是否flush
           requestFlush();
         }
@@ -3284,11 +3284,11 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
       get.addColumn(family, qualifier);
 
       // Lock row - note that doBatchMutate will relock this row if called
-      RowLock rowLock = getRowLock(get.getRow());
+      RowLock rowLock = getRowLock(get.getRow());      //因为该函数是个原子操作,所以先获得行锁
       // wait for all previous transactions to complete (with lock held)
       mvcc.waitForPreviousTransactionsComplete();
       try {
-        if (this.getCoprocessorHost() != null) {    //先处理了coprocessor
+        if (this.getCoprocessorHost() != null) {       //先处理了coprocessor
           Boolean processed = null;
           if (w instanceof Put) {
             processed = this.getCoprocessorHost().preCheckAndPutAfterRowLock(row, family,
@@ -3394,7 +3394,7 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
       get.addColumn(family, qualifier);
 
       // Lock row - note that doBatchMutate will relock this row if called
-      RowLock rowLock = getRowLock(get.getRow());
+      RowLock rowLock = getRowLock(get.getRow());     //因为这是个原子操作,所以先获得该行的行锁
       // wait for all previous transactions to complete (with lock held)
       mvcc.waitForPreviousTransactionsComplete();
       try {
@@ -3577,13 +3577,13 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
    * We throw RegionTooBusyException if above memstore limit
    * and expect client to retry using some kind of backoff
   */
-  private void checkResources() throws RegionTooBusyException {
+  private void checkResources() throws RegionTooBusyException {  //检查当前region中memstore的大小以决定是否flush
     // If catalog region, do not impose resource constraints or block updates.
     if (this.getRegionInfo().isMetaRegion()) return;    //检查当前region是否是metaregion
 
-    if (this.memstoreSize.get() > this.blockingMemStoreSize) {   //memstoreSize超标会触发flush
+    if (this.memstoreSize.get() > this.blockingMemStoreSize) {
       blockedRequestsCount.increment();                 //请求阻塞计数加一
-      requestFlush();
+      requestFlush();                                   //发出flush请求
       throw new RegionTooBusyException("Above memstore limit, " +
           "regionName=" + (this.getRegionInfo() == null ? "unknown" :
           this.getRegionInfo().getRegionNameAsString()) +
@@ -3763,11 +3763,11 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
     }
   }
 
-  private void requestFlush() {     //通过rsServices请求flush
-    if (this.rsServices == null) {
+  private void requestFlush() {       //通过rsServices请求flush
+    if (this.rsServices == null) {    //rsServices为HRegionServer提供的服务类
       return;
     }
-    synchronized (writestate) {
+    synchronized (writestate) {       //检查状态是为了避免重复请求
       if (this.writestate.isFlushRequested()) {
         return;
       }
@@ -7034,8 +7034,8 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
             // Append a faked WALEdit in order for SKIP_WAL updates to get mvcc assigned
             walKey = this.appendEmptyEdit(this.wal, memstoreCells);
           }
-          size = this.addAndGetGlobalMemstoreSize(size);
-          flush = isFlushSize(size);
+          size = this.addAndGetGlobalMemstoreSize(size);    //更新并获取最新的MemStore大小size
+          flush = isFlushSize(size);                        //根据当前大小判断是否需要flush
         } finally {
           this.updatesLock.readLock().unlock();
         }

@@ -52,11 +52,11 @@ public class DefaultCompactor extends Compactor {
    */
   public List<Path> compact(final CompactionRequest request,
       CompactionThroughputController throughputController) throws IOException {
-    FileDetails fd = getFileDetails(request.getFiles(), request.isAllFiles());
-    this.progress = new CompactionProgress(fd.maxKeyCount);
+    FileDetails fd = getFileDetails(request.getFiles(), request.isAllFiles());    //从请求中获取文件详情
+    this.progress = new CompactionProgress(fd.maxKeyCount);   //构造合并过程追踪器
 
     // Find the smallest read point across all the Scanners.
-    long smallestReadPoint = getSmallestReadPoint();
+    long smallestReadPoint = getSmallestReadPoint();    //找到scanners中的最小可读点
 
     List<StoreFileScanner> scanners;
     Collection<StoreFile> readersToClose;
@@ -71,7 +71,7 @@ public class DefaultCompactor extends Compactor {
     } else {
       readersToClose = Collections.emptyList();
       scanners = createFileScanners(request.getFiles(), smallestReadPoint);
-    }
+    }             //创建文件列表及文件浏览器
 
     StoreFile.Writer writer = null;
     List<Path> newFiles = new ArrayList<Path>();
@@ -82,7 +82,7 @@ public class DefaultCompactor extends Compactor {
       try {
         /* Include deletes, unless we are doing a compaction of all files */
         ScanType scanType =
-            request.isAllFiles() ? ScanType.COMPACT_DROP_DELETES : ScanType.COMPACT_RETAIN_DELETES;
+            request.isAllFiles() ? ScanType.COMPACT_DROP_DELETES : ScanType.COMPACT_RETAIN_DELETES;   //确定scan类型
         scanner = preCreateCoprocScanner(request, scanType, fd.earliestPutTs, scanners);
         if (scanner == null) {
           scanner = createScanner(store, scanners, scanType, smallestReadPoint, fd.earliestPutTs);
@@ -102,12 +102,12 @@ public class DefaultCompactor extends Compactor {
         // When all MVCC readpoints are 0, don't write them.
         // See HBASE-8166, HBASE-12600, and HBASE-13389.
         writer = store.createWriterInTmp(fd.maxKeyCount, this.compactionCompression, true,
-          fd.maxMVCCReadpoint > 0, fd.maxTagsLength > 0);
+          fd.maxMVCCReadpoint > 0, fd.maxTagsLength > 0);   //获取writer
         boolean finished =
             performCompaction(scanner, writer, smallestReadPoint, cleanSeqId, throughputController);
         if (!finished) {
-          writer.close();
-          store.getFileSystem().delete(writer.getPath(), false);
+          writer.close();         //如果合并失败,关闭writer
+          store.getFileSystem().delete(writer.getPath(), false);    //并删除掉writer中的临时文件
           writer = null;
           throw new InterruptedIOException( "Aborting compaction of store " + store +
               " in region " + store.getRegionInfo().getRegionNameAsString() +

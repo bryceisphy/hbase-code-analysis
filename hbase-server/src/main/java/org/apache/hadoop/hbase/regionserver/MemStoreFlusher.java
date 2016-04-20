@@ -362,7 +362,7 @@ class MemStoreFlusher implements FlushRequester {
         // This entry has no delay so it will be added at the top of the flush
         // queue.  It'll come out near immediately.
         FlushRegionEntry fqe = new FlushRegionEntry(r, forceFlushAllStores);
-        this.regionsInQueue.put(r, fqe);
+        this.regionsInQueue.put(r, fqe);      //将该region上的flush请求放入请求队列
         this.flushQueue.add(fqe);
       }
     }
@@ -452,7 +452,7 @@ class MemStoreFlusher implements FlushRequester {
           if (!this.server.compactSplitThread.requestSplit(region)) {
             try {
               this.server.compactSplitThread.requestSystemCompaction(
-                  region, Thread.currentThread().getName());              //这里发起了一个compact请求
+                  region, Thread.currentThread().getName());
             } catch (IOException e) {
               LOG.error("Cache flush failed for region " +
                   Bytes.toStringBinary(region.getRegionInfo().getRegionName()),

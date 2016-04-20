@@ -176,7 +176,7 @@ import com.google.protobuf.Service;
 import com.google.protobuf.ServiceException;
 
 /**
- * Implements the master RPC services.
+ * Implements the master RPC services. HBase-10569
  */
 @InterfaceAudience.Private
 @SuppressWarnings("deprecation")
@@ -1235,7 +1235,7 @@ public class MasterRpcServices extends RSRpcServices
    */
   @Override
   public SnapshotResponse snapshot(RpcController controller,
-      SnapshotRequest request) throws ServiceException {
+      SnapshotRequest request) throws ServiceException {    //执行snapshot
     try {
       master.checkInitialized();
       master.snapshotManager.checkSnapshotSupport();

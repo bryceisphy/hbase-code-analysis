@@ -433,7 +433,7 @@ public class AssignmentManager extends ZooKeeperListener {
         pending++;
       }
     }
-    return new Pair<Integer, Integer>(pending, hris.size());
+    return new Pair<Integer, Integer>(pending, hris.size());   //yet to update regions && total regions
   }
 
   /**
@@ -514,7 +514,7 @@ public class AssignmentManager extends ZooKeeperListener {
    */
   boolean processDeadServersAndRegionsInTransition(
       final Set<ServerName> deadServers) throws KeeperException,
-        IOException, InterruptedException, CoordinatedStateException {
+        IOException, InterruptedException, CoordinatedStateException {       //用于master启动
     List<String> nodes = ZKUtil.listChildrenNoWatch(watcher,
       watcher.assignmentZNode);
 
@@ -524,10 +524,10 @@ public class AssignmentManager extends ZooKeeperListener {
       return true; // Doesn't matter in this case
     }
 
-    boolean failover = !serverManager.getDeadServers().isEmpty();
+    boolean failover = !serverManager.getDeadServers().isEmpty();           //判断集群中是否含有dead server
     if (failover) {
       // This may not be a failover actually, especially if meta is on this master.
-      if (LOG.isDebugEnabled()) {
+      if (LOG.isDebugEnabled()) {                           //cluster含有dead regionserver
         LOG.debug("Found dead servers out on cluster " + serverManager.getDeadServers());
       }
     } else {
@@ -545,8 +545,8 @@ public class AssignmentManager extends ZooKeeperListener {
       }
       if (!failover && nodes != null) {
         // If any one region except meta is in transition, it's a failover.
-        for (String encodedName: nodes) {
-          RegionState regionState = regionStates.getRegionState(encodedName);
+        for (String encodedName: nodes) {                     //nodes是watcher.assginmentZNode
+          RegionState regionState = regionStates.getRegionState(encodedName);   //由此获得regionState处于in transition
           if (regionState != null && !regionState.getRegion().isMetaRegion()) {
             LOG.debug("Found " + regionState + " in RITs");
             failover = true;
@@ -557,7 +557,7 @@ public class AssignmentManager extends ZooKeeperListener {
     }
     if (!failover && !useZKForAssignment) {
       // If any region except meta is in transition on a live server, it's a failover.
-      Map<String, RegionState> regionsInTransition = regionStates.getRegionsInTransition();
+      Map<String, RegionState> regionsInTransition = regionStates.getRegionsInTransition();   //返回transition中的region
       if (!regionsInTransition.isEmpty()) {
         Set<ServerName> onlineServers = serverManager.getOnlineServers().keySet();
         for (RegionState regionState: regionsInTransition.values()) {
@@ -617,7 +617,7 @@ public class AssignmentManager extends ZooKeeperListener {
     }
 
     // Now region states are restored
-    regionStateStore.start();
+    regionStateStore.start();     //这一句貌似是把region state持久化到meta中
 
     // If we found user regions out on cluster, its a failover.
     if (failover) {
@@ -708,7 +708,7 @@ public class AssignmentManager extends ZooKeeperListener {
       if (data == null) return false;
       RegionTransition rt;
       try {
-        rt = RegionTransition.parseFrom(data);
+        rt = RegionTransition.parseFrom(data);    //从encodedRegionName获得RegionTransition
       } catch (DeserializationException e) {
         LOG.warn("Failed parse znode data", e);
         return false;
@@ -720,7 +720,7 @@ public class AssignmentManager extends ZooKeeperListener {
         // may not be able to find it. This is valid for online merge that
         // the region may have not been created if the merge is not completed.
         // Therefore, it is not in meta at master recovery time.
-        hri = regionStates.getRegionInfo(rt.getRegionName());
+        hri = regionStates.getRegionInfo(rt.getRegionName());     //由RegionTransition中的RegionName获得HRegionInfo
         EventType et = rt.getEventType();
         if (hri == null && et != EventType.RS_ZK_REGION_MERGING
             && et != EventType.RS_ZK_REQUEST_REGION_MERGE) {
@@ -741,7 +741,7 @@ public class AssignmentManager extends ZooKeeperListener {
       zkOrd.setServerName(cp.getServer().getServerName());
 
       return processRegionsInTransition(
-        rt, hri, openRegionCoordination, zkOrd);
+        rt, hri, openRegionCoordination, zkOrd);    //最后调用这句处理的
     } finally {
       lock.unlock();
     }
@@ -775,7 +775,7 @@ public class AssignmentManager extends ZooKeeperListener {
       // Just return
       return true;
     }
-    if (!serverManager.isServerOnline(sn)) {
+    if (!serverManager.isServerOnline(sn)) {          //处理目的地regionserver是一个dead server
       // It was transitioning on a dead server, so it's closed now.
       // Force to OFFLINE and put it in transition, but not assign it
       // since log splitting for the dead server is not done yet.
@@ -1616,21 +1616,21 @@ public class AssignmentManager extends ZooKeeperListener {
       }
 
       List<HRegionInfo> failedToOpenRegions = new ArrayList<HRegionInfo>();
-      Map<String, Lock> locks = locker.acquireLocks(encodedNames);
+      Map<String, Lock> locks = locker.acquireLocks(encodedNames);    //先获得锁
       try {
         AtomicInteger counter = new AtomicInteger(0);
         Map<String, Integer> offlineNodesVersions = new ConcurrentHashMap<String, Integer>();
         OfflineCallback cb = new OfflineCallback(
-          watcher, destination, counter, offlineNodesVersions);
+          watcher, destination, counter, offlineNodesVersions);       //async setting region to offline用于zk的
         Map<String, RegionPlan> plans = new HashMap<String, RegionPlan>(regions.size());
         List<RegionState> states = new ArrayList<RegionState>(regions.size());
-        for (HRegionInfo region : regions) {
+        for (HRegionInfo region : regions) {                  //each region to assign
           String encodedName = region.getEncodedName();
           if (!isDisabledorDisablingRegionInRIT(region)) {
-            RegionState state = forceRegionStateToOffline(region, false);
+            RegionState state = forceRegionStateToOffline(region, false);   //先把region的状态改为offline
             boolean onDeadServer = false;
             if (state != null) {
-              if (regionStates.wasRegionOnDeadServer(encodedName)) {
+              if (regionStates.wasRegionOnDeadServer(encodedName)) {      //如果该region在dead regionserver
                 LOG.info("Skip assigning " + region.getRegionNameAsString()
                   + ", it's host " + regionStates.getLastRegionServerOfRegion(encodedName)
                   + " is dead but not processed yet");
@@ -1639,7 +1639,7 @@ public class AssignmentManager extends ZooKeeperListener {
                   || asyncSetOfflineInZooKeeper(state, cb, destination)) {
                 RegionPlan plan = new RegionPlan(region, state.getServerName(), destination);
                 plans.put(encodedName, plan);
-                states.add(state);
+                states.add(state);              //将当前region的执行计划和state分别加入plans/states
                 continue;
               }
             }
@@ -1682,9 +1682,9 @@ public class AssignmentManager extends ZooKeeperListener {
         List<Triple<HRegionInfo, Integer, List<ServerName>>> regionOpenInfos =
           new ArrayList<Triple<HRegionInfo, Integer, List<ServerName>>>(states.size());
         for (RegionState state: states) {
-          HRegionInfo region = state.getRegion();
-          String encodedRegionName = region.getEncodedName();
-          Integer nodeVersion = offlineNodesVersions.get(encodedRegionName);
+          HRegionInfo region = state.getRegion();                 //获取region info
+          String encodedRegionName = region.getEncodedName();     //获取region的encodedname
+          Integer nodeVersion = offlineNodesVersions.get(encodedRegionName);      //该region对应zk上的node
           if (useZKForAssignment && (nodeVersion == null || nodeVersion == -1)) {
             LOG.warn("failed to offline in zookeeper: " + region);
             failedToOpenRegions.add(region); // assign individually later
@@ -1698,7 +1698,7 @@ public class AssignmentManager extends ZooKeeperListener {
               favoredNodes = ((FavoredNodeLoadBalancer)this.balancer).getFavoredNodes(region);
             }
             regionOpenInfos.add(new Triple<HRegionInfo, Integer,  List<ServerName>>(
-              region, nodeVersion, favoredNodes));
+              region, nodeVersion, favoredNodes));        //收集了每个region和它的优选server列表
           }
         }
 
@@ -1716,7 +1716,7 @@ public class AssignmentManager extends ZooKeeperListener {
                 break;
               }
               List<RegionOpeningState> regionOpeningStateList = serverManager
-                .sendRegionOpen(destination, regionOpenInfos);
+                .sendRegionOpen(destination, regionOpenInfos);    //发出open region请求并返回region的状态
               if (regionOpeningStateList == null) {
                 // Failed getting RPC connection to this server
                 return false;
@@ -1738,7 +1738,7 @@ public class AssignmentManager extends ZooKeeperListener {
               }
               break;
             } catch (IOException e) {
-              if (e instanceof RemoteException) {
+              if (e instanceof RemoteException) {             //处理open region过程中出现的异常
                 e = ((RemoteException)e).unwrapRemoteException();
               }
               if (e instanceof RegionServerStoppedException) {
@@ -1788,7 +1788,7 @@ public class AssignmentManager extends ZooKeeperListener {
       if (!failedToOpenRegions.isEmpty()) {
         for (HRegionInfo region : failedToOpenRegions) {
           if (!regionStates.isRegionOnline(region)) {
-            invokeAssign(region);
+            invokeAssign(region);    //对于打开失败region的处理
           }
         }
       }
@@ -1836,7 +1836,7 @@ public class AssignmentManager extends ZooKeeperListener {
         return;
       }
       // ClosedRegionhandler can remove the server from this.regions
-      if (!serverManager.isServerOnline(server)) {
+      if (!serverManager.isServerOnline(server)) {              //处理dead server
         LOG.debug("Offline " + region.getRegionNameAsString()
           + ", no need to unassign since it's on a dead server: " + server);
         if (transitionInZK) {
@@ -1851,14 +1851,14 @@ public class AssignmentManager extends ZooKeeperListener {
       try {
         // Send CLOSE RPC
         if (serverManager.sendRegionClose(server, region,
-          versionOfClosingNode, dest, transitionInZK)) {
+          versionOfClosingNode, dest, transitionInZK)) {      //向server发送close region的请求
           LOG.debug("Sent CLOSE to " + server + " for region " +
             region.getRegionNameAsString());
           if (useZKForAssignment && !transitionInZK && state != null) {
             // Retry to make sure the region is
             // closed so as to avoid double assignment.
             unassign(region, state, versionOfClosingNode,
-              dest, transitionInZK, src);
+              dest, transitionInZK, src);           //又调用自身一次确保region下线成功
           }
           return;
         }
@@ -1941,7 +1941,7 @@ public class AssignmentManager extends ZooKeeperListener {
     }
     // Run out of attempts
     if (state != null) {
-      regionStates.updateRegionState(region, State.FAILED_CLOSE);
+      regionStates.updateRegionState(region, State.FAILED_CLOSE);     //region close失败时
     }
   }
 
@@ -2070,7 +2070,7 @@ public class AssignmentManager extends ZooKeeperListener {
 
         if (plan == null) { // Get a server for the region at first
           try {
-            plan = getRegionPlan(region, forceNewPlan);
+            plan = getRegionPlan(region, forceNewPlan);   //先获取region的目标地点
           } catch (HBaseIOException e) {
             LOG.warn("Failed to get region plan", e);
           }
@@ -2092,7 +2092,7 @@ public class AssignmentManager extends ZooKeeperListener {
             continue;
           }
 
-          regionStates.updateRegionState(region, State.FAILED_OPEN);
+          regionStates.updateRegionState(region, State.FAILED_OPEN);    //更新region状态至FAILED_OPEN
           return;
         }
         if (setOfflineInZK && versionOfOfflineNode == -1) {
@@ -2142,7 +2142,7 @@ public class AssignmentManager extends ZooKeeperListener {
             favoredNodes = ((FavoredNodeLoadBalancer)this.balancer).getFavoredNodes(region);
           }
           regionOpenState = serverManager.sendRegionOpen(
-              plan.getDestination(), region, versionOfOfflineNode, favoredNodes);
+              plan.getDestination(), region, versionOfOfflineNode, favoredNodes);   //发起open region的请求
 
           if (regionOpenState == RegionOpeningState.FAILED_OPENING) {
             // Failed opening this region, looping again on a new server.
@@ -2483,8 +2483,8 @@ public class AssignmentManager extends ZooKeeperListener {
     int versionOfClosingNode = -1;
     // We need a lock here as we're going to do a put later and we don't want multiple states
     //  creation
-    ReentrantLock lock = locker.acquireLock(encodedName);
-    RegionState state = regionStates.getRegionTransitionState(encodedName);
+    ReentrantLock lock = locker.acquireLock(encodedName);                     //先获得该region的锁
+    RegionState state = regionStates.getRegionTransitionState(encodedName);   //获取transition region的状态
     boolean reassign = true;
     try {
       if (state == null) {
@@ -2508,7 +2508,7 @@ public class AssignmentManager extends ZooKeeperListener {
           }
           if (useZKForAssignment) {
             versionOfClosingNode = ZKAssign.createNodeClosing(
-              watcher, region, state.getServerName());
+              watcher, region, state.getServerName());      //在zk上为这个region创建一个节点,标识该region处于CLOSING状态
             if (versionOfClosingNode == -1) {
               LOG.info("Attempting to unassign " +
                 region.getRegionNameAsString() + " but ZK closing node "
@@ -2568,13 +2568,13 @@ public class AssignmentManager extends ZooKeeperListener {
         return;
       }
 
-      unassign(region, state, versionOfClosingNode, dest, useZKForAssignment, null);
+      unassign(region, state, versionOfClosingNode, dest, useZKForAssignment, null);    //真正卸载region的动作在这里
     } finally {
       lock.unlock();
 
       // Region is expected to be reassigned afterwards
       if (!replicasToClose.contains(region) && reassign && regionStates.isRegionOffline(region)) {
-        assign(region, true);
+        assign(region, true);     //如果一切没问题了,调用assign方法为region分配新的regionserver
       }
     }
   }
@@ -3271,7 +3271,7 @@ public class AssignmentManager extends ZooKeeperListener {
    * creating a copy of the map for metrics computation, as this method will be invoked
    * on a frequent interval.
    */
-  public void updateRegionsInTransitionMetrics() {
+  public void updateRegionsInTransitionMetrics() {      //更新metrics
     long currentTime = System.currentTimeMillis();
     int totalRITs = 0;
     int totalRITsOverThreshold = 0;
@@ -3485,7 +3485,7 @@ public class AssignmentManager extends ZooKeeperListener {
 
     // Move the region only if it's assigned
     String encodedName = hri.getEncodedName();
-    ReentrantLock lock = locker.acquireLock(encodedName);
+    ReentrantLock lock = locker.acquireLock(encodedName);     //move region的时候region是被锁住
     try {
       if (!regionStates.isRegionOnline(hri)) {
         RegionState state = regionStates.getRegionState(encodedName);

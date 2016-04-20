@@ -60,7 +60,7 @@ public class WALUtil {
     TableName tn = TableName.valueOf(c.getTableName().toByteArray());
     // we use HLogKey here instead of WALKey directly to support legacy coprocessors.
     WALKey key = new HLogKey(info.getEncodedNameAsBytes(), tn);
-    log.append(htd, info, key, WALEdit.createCompaction(info, c), sequenceId, false, null);
+    log.append(htd, info, key, WALEdit.createCompaction(info, c), sequenceId, false, null);  //在WAL中append一条记录
     log.sync();
     if (LOG.isTraceEnabled()) {
       LOG.trace("Appended compaction marker " + TextFormat.shortDebugString(c));

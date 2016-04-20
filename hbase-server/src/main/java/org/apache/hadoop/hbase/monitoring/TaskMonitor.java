@@ -52,7 +52,7 @@ public class TaskMonitor {                                    //监控hbase任�
   static final int MAX_TASKS = 1000;
   
   private static TaskMonitor instance;
-  private CircularFifoBuffer tasks = new CircularFifoBuffer(MAX_TASKS);     //CircularFifoBuffer为环形的先入先出队列
+  private CircularFifoBuffer tasks = new CircularFifoBuffer(MAX_TASKS);     //CircularFifoBuffer
 
   /**
    * Get singleton instance.

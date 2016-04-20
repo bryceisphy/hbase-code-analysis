@@ -84,7 +84,7 @@ public class Action {
 
   public void perform() throws Exception { }
 
-  /** Returns current region servers - active master */
+  /** Returns current region servers - active master */   //HBase-10569
   protected ServerName[] getCurrentServers() throws IOException {
     ClusterStatus clusterStatus = cluster.getClusterStatus();
     Collection<ServerName> regionServers = clusterStatus.getServers();

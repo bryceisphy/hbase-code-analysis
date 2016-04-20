@@ -56,7 +56,7 @@ import org.apache.htrace.TraceScope;
  * @see ExecutorService
  */
 @InterfaceAudience.Private
-public abstract class EventHandler implements Runnable, Comparable<Runnable> {
+public abstract class EventHandler implements Runnable, Comparable<Runnable> {      //handler传递runnable对象
   private static final Log LOG = LogFactory.getLog(EventHandler.class);
 
   // type of event this object represents

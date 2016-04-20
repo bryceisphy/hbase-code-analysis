@@ -100,7 +100,7 @@ import com.sun.jersey.spi.container.servlet.ServletContainer;
  */
 @InterfaceAudience.Private
 @InterfaceStability.Evolving
-public class HttpServer implements FilterContainer {
+public class HttpServer implements FilterContainer {                  //http服务,被infoServer引用
   public static final Log LOG = LogFactory.getLog(HttpServer.class);
 
   static final String FILTER_INITIALIZERS_PROPERTY
@@ -542,7 +542,7 @@ public class HttpServer implements FilterContainer {
       }
     }
 
-    addDefaultServlets();
+    addDefaultServlets();       //添加http服务的各个serverlet
 
     if (pathSpecs != null) {
       for (String path : pathSpecs) {

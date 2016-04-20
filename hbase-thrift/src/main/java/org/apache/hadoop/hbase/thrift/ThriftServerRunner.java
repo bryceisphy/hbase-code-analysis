@@ -185,7 +185,7 @@ public class ThriftServerRunner implements Runnable {
   private final Hbase.Iface handler;
   private final ThriftMetrics metrics;
   private final HBaseHandler hbaseHandler;
-  private final UserGroupInformation realUser;
+  private final UserGroupInformation realUser;        //HBase-11349
 
   private final String qop;
   private String host;
@@ -336,11 +336,11 @@ public class ThriftServerRunner implements Runnable {
       public Object run() {
         try {
           if (conf.getBoolean(USE_HTTP_CONF_KEY, false)) {
-            setupHTTPServer();
+            setupHTTPServer();    //set up http server
             httpServer.start();
             httpServer.join();
           } else {
-            setupServer();
+            setupServer();        //set up thrift server
             tserver.serve();
           }
         } catch (Exception e) {
@@ -430,7 +430,7 @@ public class ThriftServerRunner implements Runnable {
    */
   private void setupServer() throws Exception {
     // Construct correct ProtocolFactory
-    TProtocolFactory protocolFactory;             //指定协议
+    TProtocolFactory protocolFactory;             //构建protocolFactory
     if (conf.getBoolean(COMPACT_CONF_KEY, false)) {
       LOG.debug("Using compact protocol");
       protocolFactory = new TCompactProtocol.Factory();
@@ -444,7 +444,7 @@ public class ThriftServerRunner implements Runnable {
     TProcessor processor = p;
 
     // Construct correct TransportFactory
-    TTransportFactory transportFactory;             //指定传输
+    TTransportFactory transportFactory;             //构建transportFactory
     if (conf.getBoolean(FRAMED_CONF_KEY, false) || implType.isAlwaysFramed) {
       if (qop != null) {
         throw new RuntimeException("Thrift server authentication"
@@ -455,7 +455,7 @@ public class ThriftServerRunner implements Runnable {
       LOG.debug("Using framed transport");
     } else if (qop == null) {
       transportFactory = new TTransportFactory();
-    } else {
+    } else {                                        //HBase-11349 Thrift authentication相关
       // Extract the name from the principal
       String name = SecurityUtil.getUserFromPrincipal(
         conf.get("hbase.thrift.kerberos.principal"));
@@ -490,7 +490,7 @@ public class ThriftServerRunner implements Runnable {
             }
           }
         });
-      transportFactory = saslFactory;
+      transportFactory = saslFactory;       //a transport which supports SASL 安全认证需要
 
       // Create a processor wrapper, to get the caller
       processor = new TProcessor() {
@@ -1800,7 +1800,7 @@ public class ThriftServerRunner implements Runnable {
     public boolean checkAndPut(ByteBuffer tableName, ByteBuffer row, ByteBuffer column,
         ByteBuffer value, Mutation mput, Map<ByteBuffer, ByteBuffer> attributes) throws IOError,
         IllegalArgument, TException {
-      Put put;                            //先组装一个put;
+      Put put;
       try {
         put = new Put(getBytes(row), HConstants.LATEST_TIMESTAMP);
         addAttributes(put, attributes);
@@ -1816,7 +1816,7 @@ public class ThriftServerRunner implements Runnable {
         throw new IllegalArgument(Throwables.getStackTraceAsString(e));
       }
 
-      Table table = null;                 //对table执行checkAndPut
+      Table table = null;
       try {
         table = getTable(tableName);
         byte[][] famAndQf = KeyValue.parseColumn(getBytes(column));

@@ -930,7 +930,7 @@ public class HTable implements HTableInterface, RegionLocator {
   @Override
   public void batch(final List<? extends Row> actions, final Object[] results)
       throws InterruptedException, IOException {
-    AsyncRequestFuture ars = multiAp.submitAll(pool, tableName, actions, null, results);   //batch操作也是先走的异步提交
+    AsyncRequestFuture ars = multiAp.submitAll(pool, tableName, actions, null, results);   //这之后的动作是落盘到对应的regonserver
     ars.waitUntilDone();
     if (ars.hasError()) {
       throw ars.getErrors();

@@ -80,13 +80,13 @@ public class CompactSplitThread implements CompactionRequestor, PropagatingConfi
       "hbase.regionserver.regionSplitLimit";
   public static final int DEFAULT_REGION_SERVER_REGION_SPLIT_LIMIT= 1000;
   
-  private final HRegionServer server;
-  private final Configuration conf;
+  private final HRegionServer server;     //HRegionServer实例
+  private final Configuration conf;       //Configuration配置实例
 
-  private final ThreadPoolExecutor longCompactions;
-  private final ThreadPoolExecutor shortCompactions;
-  private final ThreadPoolExecutor splits;
-  private final ThreadPoolExecutor mergePool;
+  private final ThreadPoolExecutor longCompactions;     //long合并线程池
+  private final ThreadPoolExecutor shortCompactions;    //short合并线程池
+  private final ThreadPoolExecutor splits;              //split线程池
+  private final ThreadPoolExecutor mergePool;           //merge线程池
 
   private volatile CompactionThroughputController compactionThroughputController;
 
@@ -95,7 +95,7 @@ public class CompactSplitThread implements CompactionRequestor, PropagatingConfi
    * This is not a hard limit to the number of regions but it is a guideline to
    * stop splitting after number of online regions is greater than this.
    */
-  private int regionSplitLimit;
+  private int regionSplitLimit;     //如果region总数超过这个限制,split不该发生
 
   /** @param server */
   CompactSplitThread(HRegionServer server) {
@@ -175,7 +175,7 @@ public class CompactSplitThread implements CompactionRequestor, PropagatingConfi
         + ", merge_queue=" + mergePool.getQueue().size();
   }
   
-  public String dumpQueue() {
+  public String dumpQueue() {     //获取所有的队列信息
     StringBuffer queueLists = new StringBuffer();
     queueLists.append("Compaction/Split Queue dump:\n");
     queueLists.append("  LargeCompation Queue:\n");
@@ -333,33 +333,33 @@ public class CompactSplitThread implements CompactionRequestor, PropagatingConfi
   private synchronized CompactionRequest requestCompactionInternal(final Region r, final Store s,
       final String why, int priority, CompactionRequest request, boolean selectNow)
           throws IOException {
-    if (this.server.isStopped()
+    if (this.server.isStopped()     //首先做一些环境判断,比如HRegionServer是否已经停止
         || (r.getTableDesc() != null && !r.getTableDesc().isCompactionEnabled())) {
       return null;
     }
 
     CompactionContext compaction = null;
-    if (selectNow) {
-      compaction = selectCompaction(r, s, priority, request);
+    if (selectNow) {    //通过hbase shell人为触发的合并,selectNow为true
+      compaction = selectCompaction(r, s, priority, request);   //选取待compact文件
       if (compaction == null) return null; // message logged inside
     }
 
     // We assume that most compactions are small. So, put system compactions into small
     // pool; we will do selection there, and move to large pool if necessary.
     ThreadPoolExecutor pool = (selectNow && s.throttleCompaction(compaction.getRequest().getSize()))
-      ? longCompactions : shortCompactions;
-    pool.execute(new CompactionRunner(s, r, compaction, pool));
+      ? longCompactions : shortCompactions;  //划分线程池,系统引发的compact全部划分到short pool
+    pool.execute(new CompactionRunner(s, r, compaction, pool)); //将合并请求包装成CompactionRunner扔到pool
     if (LOG.isDebugEnabled()) {
       String type = (pool == shortCompactions) ? "Small " : "Large ";
       LOG.debug(type + "Compaction requested: " + (selectNow ? compaction.toString() : "system")
           + (why != null && !why.isEmpty() ? "; Because: " + why : "") + "; " + this);
     }
-    return selectNow ? compaction.getRequest() : null;
+    return selectNow ? compaction.getRequest() : null;    //返回,如果是人为触发的则返回compact请求
   }
 
   private CompactionContext selectCompaction(final Region r, final Store s,
       int priority, CompactionRequest request) throws IOException {
-    CompactionContext compaction = s.requestCompaction(priority, request);
+    CompactionContext compaction = s.requestCompaction(priority, request);  //获取CompactionContext
     if (compaction == null) {
       if(LOG.isDebugEnabled()) {
         LOG.debug("Not compacting " + r.getRegionInfo().getRegionNameAsString() +
@@ -369,7 +369,7 @@ public class CompactSplitThread implements CompactionRequestor, PropagatingConfi
     }
     assert compaction.hasSelection();
     if (priority != Store.NO_PRIORITY) {
-      compaction.getRequest().setPriority(priority);
+      compaction.getRequest().setPriority(priority);    //设置priority
     }
     return compaction;
   }
@@ -517,7 +517,7 @@ public class CompactSplitThread implements CompactionRequestor, PropagatingConfi
         //       put it into region/store/etc. This is CST logic.
         long start = EnvironmentEdgeManager.currentTime();
         boolean completed =
-            region.compact(compaction, store, compactionThroughputController);
+            region.compact(compaction, store, compactionThroughputController);    //这开始调用到region级别的compact
         long now = EnvironmentEdgeManager.currentTime();
         LOG.info(((completed) ? "Completed" : "Aborted") + " compaction: " +
               this + "; duration=" + StringUtils.formatTimeDiff(now, start));

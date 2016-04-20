@@ -129,7 +129,7 @@ public class CloseRegionHandler extends EventHandler {
       // Close the region
       try {
         if (useZKForAssignment && closeRegionCoordination.checkClosingState(
-            regionInfo, closeRegionDetails)) {
+            regionInfo, closeRegionDetails)) {      //与zk相关的抽离出coordination
           return;
         }
 

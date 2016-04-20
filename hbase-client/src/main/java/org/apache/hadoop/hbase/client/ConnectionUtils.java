@@ -104,7 +104,7 @@ public class ConnectionUtils {
   }
 
   /**
-   * Adapt a HConnection so that it can bypass the RPC layer (serialization,     //能够绕过RPC的短路链接,用于serialization/deserialization/networking
+   * Adapt a HConnection so that it can bypass the RPC layer (serialization,
    * deserialization, networking, etc..) -- i.e. short-circuit -- when talking to a local server.
    * @param conn the connection to adapt
    * @param serverName the local server name

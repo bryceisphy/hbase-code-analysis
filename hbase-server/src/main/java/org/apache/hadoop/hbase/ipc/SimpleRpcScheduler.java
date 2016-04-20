@@ -60,7 +60,7 @@ public class SimpleRpcScheduler extends RpcScheduler {
    * It uses the calculated "deadline" e.g. to deprioritize long-running job
    *
    * If multiple requests have the same deadline BoundedPriorityBlockingQueue will order them in
-   * FIFO (first-in-first-out) manner.
+   * FIFO (first-in-first-out) manner.                    此函数用于给长延时的任务降级
    */
   private static class CallPriorityComparator implements Comparator<CallRunner> {
     private final static int DEFAULT_MAX_CALL_DELAY = 5000;

@@ -1368,7 +1368,7 @@ public class RSRpcServices implements HBaseRPCErrorHandler,
   @Override
   @QosPriority(priority=HConstants.ADMIN_QOS)
   public OpenRegionResponse openRegion(final RpcController controller,
-      final OpenRegionRequest request) throws ServiceException {
+      final OpenRegionRequest request) throws ServiceException {        //响应open region
     requestCount.increment();
     if (request.hasServerStartCode()) {
       // check that we are the same server that this RPC is intended for.
@@ -1425,7 +1425,7 @@ public class RSRpcServices implements HBaseRPCErrorHandler,
       OpenRegionCoordination coordination = regionServer.getCoordinatedStateManager().
         getOpenRegionCoordination();
       OpenRegionCoordination.OpenRegionDetails ord =
-        coordination.parseFromProtoRequest(regionOpenInfo);
+        coordination.parseFromProtoRequest(regionOpenInfo);     //HBase-10962 将zk的使用抽离出来
 
       HTableDescriptor htd;
       try {

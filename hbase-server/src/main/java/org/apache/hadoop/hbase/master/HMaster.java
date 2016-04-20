@@ -256,7 +256,7 @@ public class HMaster extends HRegionServer implements MasterServices, Server {
   private MasterFileSystem fileSystemManager;
 
   // server manager to deal with region server info
-  volatile ServerManager serverManager;
+  volatile ServerManager serverManager;             //HBase-10569加入了关键字volatile
 
   // manager of assignment nodes in zookeeper
   AssignmentManager assignmentManager;
@@ -318,7 +318,7 @@ public class HMaster extends HRegionServer implements MasterServices, Server {
   MasterProcedureManagerHost mpmHost;
   
   // it is assigned after 'initialized' guard set to true, so should be volatile
-  private volatile MasterQuotaManager quotaManager;
+  private volatile MasterQuotaManager quotaManager;     //rpc throttling管理-HBase11598
 
   private ProcedureExecutor<MasterProcedureEnv> procedureExecutor;
   private WALProcedureStore procedureStore;
@@ -1266,15 +1266,15 @@ public class HMaster extends HRegionServer implements MasterServices, Server {
     int maximumBalanceTime = getBalancerCutoffTime();
     synchronized (this.balancer) {
       // If balance not true, don't run balancer.
-      if (!this.loadBalancerTracker.isBalancerOn()) return false;
+      if (!this.loadBalancerTracker.isBalancerOn()) return false;   //前往zk查看loadBalancer是否开启
       // Only allow one balance run at at time.
-      if (this.assignmentManager.getRegionStates().isRegionsInTransition()) {
+      if (this.assignmentManager.getRegionStates().isRegionsInTransition()) {   //检查当前是否有region处于in transition状态
         Map<String, RegionState> regionsInTransition =
           this.assignmentManager.getRegionStates().getRegionsInTransition();
         LOG.debug("Not running balancer because " + regionsInTransition.size() +
           " region(s) in transition: " + org.apache.commons.lang.StringUtils.
             abbreviate(regionsInTransition.toString(), 256));
-        return false;
+        return false;         //如果有则balancer直接返回
       }
       if (this.serverManager.areDeadServersInProgress()) {
         LOG.debug("Not running balancer because processing dead regionserver(s): " +
@@ -1301,8 +1301,8 @@ public class HMaster extends HRegionServer implements MasterServices, Server {
       //Give the balancer the current cluster state.
       this.balancer.setClusterStatus(getClusterStatus());
       for (Map<ServerName, List<HRegionInfo>> assignments : assignmentsByTable.values()) {
-        List<RegionPlan> partialPlans = this.balancer.balanceCluster(assignments);
-        if (partialPlans != null) plans.addAll(partialPlans);
+        List<RegionPlan> partialPlans = this.balancer.balanceCluster(assignments);    //评估出可选的balance执行计划
+        if (partialPlans != null) plans.addAll(partialPlans);     //放入regionsPlans
       }
       long cutoffTime = System.currentTimeMillis() + maximumBalanceTime;
       int rpCount = 0;  // number of RegionPlans balanced so far
@@ -1312,7 +1312,7 @@ public class HMaster extends HRegionServer implements MasterServices, Server {
           LOG.info("balance " + plan);
           long balStartTime = System.currentTimeMillis();
           //TODO: bulk assign
-          this.assignmentManager.balance(plan);
+          this.assignmentManager.balance(plan);     //对于每个plan调用该函数
           totalRegPlanExecTime += System.currentTimeMillis()-balStartTime;
           rpCount++;
           if (rpCount < plans.size() &&

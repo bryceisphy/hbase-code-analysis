@@ -57,7 +57,7 @@ import org.apache.hadoop.hbase.util.Triple;
  * table on a period looking for unused regions to garbage collect.
  */
 @InterfaceAudience.Private
-public class CatalogJanitor extends ScheduledChore {
+public class CatalogJanitor extends ScheduledChore {    //这个类用于回收meta表中不再使用的region信息
   private static final Log LOG = LogFactory.getLog(CatalogJanitor.class.getName());
   private final Server server;
   private final MasterServices services;
@@ -201,7 +201,7 @@ public class CatalogJanitor extends ScheduledChore {
       HFileArchiver.archiveRegion(this.services.getConfiguration(), fs, regionA);
       HFileArchiver.archiveRegion(this.services.getConfiguration(), fs, regionB);
       MetaTableAccessor.deleteMergeQualifiers(server.getConnection(),
-        mergedRegion);
+        mergedRegion);    //从meta表中删除掉已merge的region信息
       return true;
     }
     return false;
@@ -219,7 +219,7 @@ public class CatalogJanitor extends ScheduledChore {
         return 0;
       }
       Triple<Integer, Map<HRegionInfo, Result>, Map<HRegionInfo, Result>> scanTriple =
-        getMergedRegionsAndSplitParents();
+        getMergedRegionsAndSplitParents();      //先收集merged&split region
       int count = scanTriple.getFirst();
       /**
        * clean merge regions first
@@ -239,7 +239,7 @@ public class CatalogJanitor extends ScheduledChore {
               + " in merged region " + e.getKey().getRegionNameAsString());
         } else {
           if (cleanMergeRegion(e.getKey(), regionA, regionB)) {
-            mergeCleaned++;
+            mergeCleaned++;             //从meta表中回收掉merged的regionA&regionB
           }
         }
       }
@@ -312,7 +312,7 @@ public class CatalogJanitor extends ScheduledChore {
    * the filesystem.
    * @throws IOException
    */
-  boolean cleanParent(final HRegionInfo parent, Result rowContent)
+  boolean cleanParent(final HRegionInfo parent, Result rowContent)    //删除掉已splited的父region信息
   throws IOException {
     boolean result = false;
     // Check whether it is a merged region and not clean reference
@@ -332,8 +332,8 @@ public class CatalogJanitor extends ScheduledChore {
         " because daughter splits no longer hold references");
       FileSystem fs = this.services.getMasterFileSystem().getFileSystem();
       if (LOG.isTraceEnabled()) LOG.trace("Archiving parent region: " + parent);
-      HFileArchiver.archiveRegion(this.services.getConfiguration(), fs, parent);
-      MetaTableAccessor.deleteRegion(this.connection, parent);
+      HFileArchiver.archiveRegion(this.services.getConfiguration(), fs, parent);  //hbase中的数据删除动作都是archive
+      MetaTableAccessor.deleteRegion(this.connection, parent);      //从meta表中删除region的元信息
       result = true;
     }
     return result;

@@ -96,7 +96,7 @@ public class RatioBasedCompactionPolicy extends CompactionPolicy {
     // If we can't have all files, we cannot do major anyway
     boolean isAllFiles = candidateFiles.size() == candidateSelection.size();
     if (!(forceMajor && isAllFiles)) {
-      candidateSelection = skipLargeFiles(candidateSelection);
+      candidateSelection = skipLargeFiles(candidateSelection);          //排除掉较大尺寸的文件
       isAllFiles = candidateFiles.size() == candidateSelection.size();
     }
 
@@ -109,7 +109,7 @@ public class RatioBasedCompactionPolicy extends CompactionPolicy {
     boolean isAfterSplit = StoreUtils.hasReferences(candidateSelection);
     if (!isTryingMajor && !isAfterSplit) {
       // We're are not compacting all files, let's see what files are applicable
-      candidateSelection = filterBulk(candidateSelection);
+      candidateSelection = filterBulk(candidateSelection);              //排除掉BulkLoad文件
       candidateSelection = applyCompactionPolicy(candidateSelection, mayUseOffPeak, mayBeStuck);
       candidateSelection = checkMinFilesCriteria(candidateSelection);
     }
@@ -228,19 +228,19 @@ public class RatioBasedCompactionPolicy extends CompactionPolicy {
   ArrayList<StoreFile> applyCompactionPolicy(ArrayList<StoreFile> candidates,
       boolean mayUseOffPeak, boolean mayBeStuck) throws IOException {
     if (candidates.isEmpty()) {
-      return candidates;
+      return candidates;    //文件列表为空时,返回
     }
 
     // we're doing a minor compaction, let's see what files are applicable
     int start = 0;
-    double ratio = comConf.getCompactionRatio();
+    double ratio = comConf.getCompactionRatio();      //获取文件的合并比例
     if (mayUseOffPeak) {
       ratio = comConf.getCompactionRatioOffPeak();
       LOG.info("Running an off-peak compaction, selection ratio = " + ratio);
     }
 
     // get store file sizes for incremental compacting selection.
-    final int countOfFiles = candidates.size();
+    final int countOfFiles = candidates.size();     //使用了一套复杂的滑动窗口算法选出了待合并文件
     long[] fileSizes = new long[countOfFiles];
     long[] sumSize = new long[countOfFiles];
     for (int i = countOfFiles - 1; i >= 0; --i) {
@@ -269,7 +269,7 @@ public class RatioBasedCompactionPolicy extends CompactionPolicy {
         start = filesToLeave;
       }
     }
-    candidates.subList(0, start).clear();
+    candidates.subList(0, start).clear();         //截取出这一部分参与compact的文件
     return candidates;
   }
 

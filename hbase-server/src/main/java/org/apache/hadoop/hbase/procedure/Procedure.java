@@ -202,7 +202,7 @@ public class Procedure implements Callable<Void>, ForeignExceptionListener {
       // start by checking for error first
       monitor.rethrowException();
       LOG.debug("Procedure '" + procName + "' starting 'acquire'");
-      sendGlobalBarrierStart();
+      sendGlobalBarrierStart();     //发布snapshot任务
 
       // wait for all the members to report acquisition
       LOG.debug("Waiting for all members to 'acquire'");

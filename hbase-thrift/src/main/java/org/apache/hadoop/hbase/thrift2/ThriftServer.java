@@ -91,7 +91,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  */
 @InterfaceAudience.LimitedPrivate(HBaseInterfaceAudience.TOOLS)
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class ThriftServer {                           //thrift服务一般都在这个类中
+public class ThriftServer {                           //thrift2服务一般都在这个类中
   private static final Log log = LogFactory.getLog(ThriftServer.class);
 
   /**
@@ -200,7 +200,7 @@ public class ThriftServer {                           //thrift服务一般都在
             }
           }
         });
-      return saslFactory;
+      return saslFactory;       //返回了一个带SASL的transport
     }
   }
 
@@ -380,7 +380,7 @@ public class ThriftServer {                           //thrift服务一般都在
     conf.setInt("hbase.regionserver.thrift.port", listenPort);
     registerFilters(conf);
 
-    // Construct correct ProtocolFactory
+    // Construct correct ProtocolFactory    构建protocol和processor
     boolean compact = cmd.hasOption("compact") ||
         conf.getBoolean("hbase.regionserver.thrift.compact", false);
     TProtocolFactory protocolFactory = getTProtocolFactory(compact);
@@ -437,7 +437,7 @@ public class ThriftServer {                           //thrift服务一般都在
       infoServer.start();
     }
 
-    if (nonblocking) {
+    if (nonblocking) {                //构建server
       server = getTNonBlockingServer(protocolFactory, processor, transportFactory, inetSocketAddress);
     } else if (hsha) {
       server = getTHsHaServer(protocolFactory, processor, transportFactory, inetSocketAddress, metrics);

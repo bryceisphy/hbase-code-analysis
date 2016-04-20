@@ -155,9 +155,9 @@ public class SplitTransactionImpl implements SplitTransaction {               //
     for (int i = 0; i < listeners.size(); i++) {
       TransactionListener listener = listeners.get(i);
       if (!isRollback) {
-        listener.transition(this, currentPhase, nextPhase);
+        listener.transition(this, currentPhase, nextPhase);   //提交事务
       } else {
-        listener.rollback(this, currentPhase, nextPhase);
+        listener.rollback(this, currentPhase, nextPhase);     //回滚事务
       }
     }
     currentPhase = nextPhase;

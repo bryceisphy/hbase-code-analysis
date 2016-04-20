@@ -46,7 +46,7 @@ import org.ietf.jgss.Oid;
 
 /**
  * Thrift Http Servlet is used for performing Kerberos authentication if security is enabled and
- * also used for setting the user specified in "doAs" parameter.
+ * also used for setting the user specified in "doAs" parameter.  HBase-12640
  */
 @InterfaceAudience.Private
 public class ThriftHttpServlet extends TServlet {

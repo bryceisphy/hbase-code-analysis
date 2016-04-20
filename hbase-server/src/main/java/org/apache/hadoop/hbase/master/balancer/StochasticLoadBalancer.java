@@ -250,7 +250,7 @@ public class StochasticLoadBalancer extends BaseLoadBalancer {
 
     initCosts(cluster);
 
-    double currentCost = computeCost(cluster, Double.MAX_VALUE);
+    double currentCost = computeCost(cluster, Double.MAX_VALUE); //计算当前集群的cost值,评估移动成本
 
     double initCost = currentCost;
     double newCost = currentCost;
@@ -260,7 +260,7 @@ public class StochasticLoadBalancer extends BaseLoadBalancer {
     // Perform a stochastic walk to see if we can get a good fit.
     long step;
 
-    for (step = 0; step < computedMaxSteps; step++) {
+    for (step = 0; step < computedMaxSteps; step++) {       //迭代computedMaxSteps次
       int generatorIdx = RANDOM.nextInt(candidateGenerators.length);
       CandidateGenerator p = candidateGenerators[generatorIdx];
       Cluster.Action action = p.generate(cluster);
@@ -276,7 +276,7 @@ public class StochasticLoadBalancer extends BaseLoadBalancer {
 
       // Should this be kept?
       if (newCost < currentCost) {
-        currentCost = newCost;
+        currentCost = newCost;      //如果newCost更小,说明本次region交换是有意义的
       } else {
         // Put things back the way they were before.
         // TODO: undo by remembering old values

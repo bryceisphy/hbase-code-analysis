@@ -51,7 +51,7 @@ public class RegionServerQuotaManager {
   }
 
   public void start(final RpcScheduler rpcScheduler) throws IOException {
-    if (!QuotaUtil.isQuotaEnabled(rsServices.getConfiguration())) {
+    if (!QuotaUtil.isQuotaEnabled(rsServices.getConfiguration())) {     //先查看该regionserver是否配置了quota
       LOG.info("Quota support disabled");
       return;
     }

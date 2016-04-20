@@ -657,7 +657,7 @@ public class HStore implements Store {
     info.setRegionCoprocessorHost(this.region.getCoprocessorHost());
     StoreFile storeFile = new StoreFile(this.getFileSystem(), info, this.conf, this.cacheConf,
       this.family.getBloomFilterType());
-    storeFile.createReader();
+    storeFile.createReader();   //创建Reader,Reader用于提供文件数据的读取服务
     return storeFile;
   }
 
@@ -1187,7 +1187,7 @@ public class HStore implements Store {
       CompactionThroughputController throughputController) throws IOException {
     assert compaction != null;
     List<StoreFile> sfs = null;
-    CompactionRequest cr = compaction.getRequest();;
+    CompactionRequest cr = compaction.getRequest();     //首先,从合并上下文中获取合并请求
     try {
       // Do all sanity checking in here if we have a valid CompactionRequest
       // because we need to clean up after it on the way out in a finally
@@ -1195,11 +1195,11 @@ public class HStore implements Store {
       long compactionStartTime = EnvironmentEdgeManager.currentTime();
       assert compaction.hasSelection();
       Collection<StoreFile> filesToCompact = cr.getFiles();
-      assert !filesToCompact.isEmpty();
+      assert !filesToCompact.isEmpty();                 //从合并请求中获取需要合并的文件集合filesToCompact
       synchronized (filesCompacting) {
         // sanity check: we're compacting files that this store knows about
         // TODO: change this to LOG.error() after more debugging
-        Preconditions.checkArgument(filesCompacting.containsAll(filesToCompact));
+        Preconditions.checkArgument(filesCompacting.containsAll(filesToCompact));  //确保filesCompacting完整
       }
 
       // Ready to go. Have list of files to compact.
@@ -1209,10 +1209,10 @@ public class HStore implements Store {
           + TraditionalBinaryPrefix.long2String(cr.getSize(), "", 1));
 
       // Commence the compaction.
-      List<Path> newFiles = compaction.compact(throughputController);
+      List<Path> newFiles = compaction.compact(throughputController);   //开始compact,newFiles是合并后的新文件
 
       // TODO: get rid of this!
-      if (!this.conf.getBoolean("hbase.hstore.compaction.complete", true)) {
+      if (!this.conf.getBoolean("hbase.hstore.compaction.complete", true)) {     //确定是否完整地完成compact
         LOG.warn("hbase.hstore.compaction.complete is set to false");
         sfs = new ArrayList<StoreFile>(newFiles.size());
         for (Path newFile : newFiles) {
@@ -1224,23 +1224,23 @@ public class HStore implements Store {
         return sfs;
       }
       // Do the steps necessary to complete the compaction.
-      sfs = moveCompatedFilesIntoPlace(cr, newFiles);
-      writeCompactionWalRecord(filesToCompact, sfs);
-      replaceStoreFiles(filesToCompact, sfs);
-      if (cr.isMajor()) {
+      sfs = moveCompatedFilesIntoPlace(cr, newFiles);  //将newFiles移动到新的位置,返回起StoreFile列表
+      writeCompactionWalRecord(filesToCompact, sfs);   //在WAL中写入Compaction记录
+      replaceStoreFiles(filesToCompact, sfs);     //将新生成的StoreFile列表替换到StoreFileManager的storefile中去
+      if (cr.isMajor()) {                           //根据compact类型,累加相应计数器
         majorCompactedCellsCount += getCompactionProgress().totalCompactingKVs;
         majorCompactedCellsSize += getCompactionProgress().totalCompactedSize;
       } else {
         compactedCellsCount += getCompactionProgress().totalCompactingKVs;
         compactedCellsSize += getCompactionProgress().totalCompactedSize;
       }
-      // At this point the store will use new files for all new scanners.
+      // At this point the store will use new files for all new scanners. 归档旧文件
       completeCompaction(filesToCompact, true); // Archive old files & update store size.
 
-      logCompactionEndMessage(cr, sfs, compactionStartTime);
+      logCompactionEndMessage(cr, sfs, compactionStartTime);   //记录日志信息并返回
       return sfs;
     } finally {
-      finishCompactionRequest(cr);
+      finishCompactionRequest(cr);      //完成compaction请求
     }
   }
 
@@ -1263,8 +1263,8 @@ public class HStore implements Store {
   StoreFile moveFileIntoPlace(final Path newFile) throws IOException {
     validateStoreFile(newFile);
     // Move the file into the right spot
-    Path destPath = fs.commitStoreFile(getColumnFamilyName(), newFile);
-    return createStoreFileAndReader(destPath);
+    Path destPath = fs.commitStoreFile(getColumnFamilyName(), newFile);   //移动newFile到新的位置
+    return createStoreFileAndReader(destPath);          //创建storeFile和Reader
   }
 
   /**
@@ -1276,14 +1276,14 @@ public class HStore implements Store {
       Collection<StoreFile> newFiles) throws IOException {
     if (region.getWAL() == null) return;
     List<Path> inputPaths = new ArrayList<Path>(filesCompacted.size());
-    for (StoreFile f : filesCompacted) {
+    for (StoreFile f : filesCompacted) {  //将被合并的文件添加至inputPaths列表
       inputPaths.add(f.getPath());
     }
     List<Path> outputPaths = new ArrayList<Path>(newFiles.size());
-    for (StoreFile f : newFiles) {
+    for (StoreFile f : newFiles) {        //将合并后的新文件添加至outputPahts列表
       outputPaths.add(f.getPath());
     }
-    HRegionInfo info = this.region.getRegionInfo();
+    HRegionInfo info = this.region.getRegionInfo();     //获取HRegionInfo
     CompactionDescriptor compactionDescriptor = ProtobufUtil.toCompactionDescriptor(info,
         family.getName(), inputPaths, outputPaths, fs.getStoreDir(getFamily().getNameAsString()));
     WALUtil.writeCompactionMarker(region.getWAL(), this.region.getTableDesc(),
@@ -1506,13 +1506,13 @@ public class HStore implements Store {
     // Before we do compaction, try to get rid of unneeded files to simplify things.
     removeUnneededFiles();
 
-    CompactionContext compaction = storeEngine.createCompaction();
+    CompactionContext compaction = storeEngine.createCompaction();  //通过存储引擎创建合并上下文
     CompactionRequest request = null;
-    this.lock.readLock().lock();
+    this.lock.readLock().lock();      //获取读锁
     try {
       synchronized (filesCompacting) {
         // First, see if coprocessor would want to override selection.
-        if (this.getCoprocessorHost() != null) {
+        if (this.getCoprocessorHost() != null) {                    //处理协处理器
           List<StoreFile> candidatesForCoproc = compaction.preSelect(this.filesCompacting);
           boolean override = this.getCoprocessorHost().preCompactSelection(
               this, candidatesForCoproc, baseRequest);
@@ -1529,7 +1529,7 @@ public class HStore implements Store {
               offPeakCompactionTracker.compareAndSet(false, true);
           try {
             compaction.select(this.filesCompacting, isUserCompaction,
-              mayUseOffPeak, forceMajor && filesCompacting.isEmpty());
+              mayUseOffPeak, forceMajor && filesCompacting.isEmpty());    //初始化compaction中的合并请求request
           } catch (IOException e) {
             if (mayUseOffPeak) {
               offPeakCompactionTracker.set(false);
@@ -1555,8 +1555,8 @@ public class HStore implements Store {
               baseRequest.combineWith(compaction.getRequest()));
         }
         // Finally, we have the resulting files list. Check if we have any files at all.
-        request = compaction.getRequest();
-        final Collection<StoreFile> selectedFiles = request.getFiles();
+        request = compaction.getRequest();            //获取合并请求
+        final Collection<StoreFile> selectedFiles = request.getFiles();   //从合并请求中获取待合并文件集合
         if (selectedFiles.isEmpty()) {
           return null;
         }
@@ -1568,11 +1568,11 @@ public class HStore implements Store {
 
         // Set common request properties.
         // Set priority, either override value supplied by caller or from store.
-        request.setPriority((priority != Store.NO_PRIORITY) ? priority : getCompactPriority());
-        request.setDescription(getRegionInfo().getRegionNameAsString(), getColumnFamilyName());
+        request.setPriority((priority != Store.NO_PRIORITY) ? priority : getCompactPriority()); //设置优先级
+        request.setDescription(getRegionInfo().getRegionNameAsString(), getColumnFamilyName()); //设置描述信息
       }
     } finally {
-      this.lock.readLock().unlock();
+      this.lock.readLock().unlock();    //解除读锁
     }
 
     LOG.debug(getRegionInfo().getEncodedName() + " - "  + getColumnFamilyName()
@@ -1631,7 +1631,7 @@ public class HStore implements Store {
   }
 
   private void finishCompactionRequest(CompactionRequest cr) {
-    this.region.reportCompactionRequestEnd(cr.isMajor(), cr.getFiles().size(), cr.getSize());
+    this.region.reportCompactionRequestEnd(cr.isMajor(), cr.getFiles().size(), cr.getSize()); //region汇报合并请求
     if (cr.isOffPeak()) {
       offPeakCompactionTracker.set(false);
       cr.setOffPeak(false);
@@ -1706,16 +1706,16 @@ public class HStore implements Store {
       // change in case old files are still being accessed by outstanding scanners.
       // Don't do this under writeLock; see HBASE-4485 for a possible deadlock
       // scenario that could have happened if continue to hold the lock.
-      notifyChangedReadersObservers();
+      notifyChangedReadersObservers();                //通知Reader观察者
       // At this point the store will use new files for all scanners.
 
       // let the archive util decide if we should archive or delete the files
       LOG.debug("Removing store files after compaction...");
       for (StoreFile compactedFile : compactedFiles) {
-        compactedFile.closeReader(true);
+        compactedFile.closeReader(true);          //遍历已被合并的文件,关闭其上的Reader
       }
       if (removeFiles) {
-        this.fs.removeStoreFiles(this.getColumnFamilyName(), compactedFiles);
+        this.fs.removeStoreFiles(this.getColumnFamilyName(), compactedFiles);  //调用文件系统删除掉compactedFiles
       }
     } catch (IOException e) {
       e = RemoteExceptionHandler.checkIOException(e);

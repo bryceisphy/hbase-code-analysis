@@ -164,7 +164,7 @@ public abstract class TakeSnapshotHandler extends EventHandler implements Snapsh
       // an external exception that gets captured here.
 
       // write down the snapshot info in the working directory
-      SnapshotDescriptionUtils.writeSnapshotInfo(snapshot, workingDir, fs);
+      SnapshotDescriptionUtils.writeSnapshotInfo(snapshot, workingDir, fs);  //将SnapshotDescription对象写入到snapshotinfo文件
       snapshotManifest.addTableDescriptor(this.htd);
       monitor.rethrowException();
 

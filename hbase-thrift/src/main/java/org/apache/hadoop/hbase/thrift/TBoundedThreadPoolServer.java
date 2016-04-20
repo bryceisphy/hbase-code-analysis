@@ -47,7 +47,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  * A bounded thread pool server customized for HBase.
  */
 @InterfaceAudience.Private
-public class TBoundedThreadPoolServer extends TServer {
+public class TBoundedThreadPoolServer extends TServer {     //
 
   private static final String QUEUE_FULL_MSG =
       "Queue is full, closing connection";
@@ -155,7 +155,7 @@ public class TBoundedThreadPoolServer extends TServer {
     executorService =
         new ThreadPoolExecutor(options.minWorkerThreads,
             options.maxWorkerThreads, options.threadKeepAliveTimeSec,
-            TimeUnit.SECONDS, this.callQueue, tfb.build());
+            TimeUnit.SECONDS, this.callQueue, tfb.build());             //初始化线程池,构造函数结束
     serverOptions = options;
   }
 

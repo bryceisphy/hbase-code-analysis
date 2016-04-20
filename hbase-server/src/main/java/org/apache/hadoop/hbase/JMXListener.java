@@ -46,12 +46,12 @@ import javax.rmi.ssl.SslRMIServerSocketFactory;
  * 2)support password authentication
  * 3)support subset of SSL (with default configuration)
  */
-public class JMXListener implements Coprocessor {
+public class JMXListener implements Coprocessor {                 //与MBeans相关的类
 
   public static final Log LOG = LogFactory.getLog(JMXListener.class);
   public static final String RMI_REGISTRY_PORT_CONF_KEY = ".rmi.registry.port";
   public static final String RMI_CONNECTOR_PORT_CONF_KEY = ".rmi.connector.port";
-  public static final int defMasterRMIRegistryPort = 10101;
+  public static final int defMasterRMIRegistryPort = 10101;       //HBase-13564
   public static final int defRegionserverRMIRegistryPort = 10102;
 
   /**
@@ -108,7 +108,7 @@ public class JMXListener implements Coprocessor {
     if (rmiSSL) {
       if (rmiRegistryPort == rmiConnectorPort) {
         throw new IOException("SSL is enabled. " +
-            "rmiConnectorPort cannot share with the rmiRegistryPort!");
+            "rmiConnectorPort cannot share with the rmiRegistryPort!");     //在启用ssl的情况下,connector和registry不能共用端口
       }
       csf = new SslRMIClientSocketFactory();
       ssf = new SslRMIServerSocketFactory();

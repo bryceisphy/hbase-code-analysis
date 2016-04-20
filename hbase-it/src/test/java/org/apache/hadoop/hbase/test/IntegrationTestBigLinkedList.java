@@ -185,7 +185,7 @@ import com.google.common.collect.Sets;
  * This class can be run as a unit test, as an integration test, or from the command line
  */
 @Category(IntegrationTests.class)
-public class IntegrationTestBigLinkedList extends IntegrationTestBase {
+public class IntegrationTestBigLinkedList extends IntegrationTestBase {             //HBase-8031
   protected static final byte[] NO_KEY = new byte[1];
 
   protected static String TABLE_NAME_KEY = "IntegrationTestBigLinkedList.table";

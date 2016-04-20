@@ -34,7 +34,7 @@ import org.apache.hadoop.hbase.classification.InterfaceAudience;
  * ThriftMetrics.
  */
 @InterfaceAudience.Private
-public class CallQueue implements BlockingQueue<Runnable> {
+public class CallQueue implements BlockingQueue<Runnable> {     //包装了一个用于与线程池交互的任务队列
   private static Log LOG = LogFactory.getLog(CallQueue.class);
 
   private final BlockingQueue<Call> underlyingQueue;

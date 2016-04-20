@@ -64,7 +64,7 @@ public class TimeBasedLimiter implements QuotaLimiter {
     }
   }
 
-  static QuotaLimiter fromThrottle(final Throttle throttle) {
+  static QuotaLimiter fromThrottle(final Throttle throttle) {     //Throttle节流阀?????
     TimeBasedLimiter limiter = new TimeBasedLimiter();
     boolean isBypass = true;
     if (throttle.hasReqNum()) {

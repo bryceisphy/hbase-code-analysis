@@ -36,7 +36,7 @@ import org.apache.hadoop.conf.Configuration;
  *   "/" -> the jsp server code from (src/hbase-webapps/<name>)
  */
 @InterfaceAudience.Private
-public class InfoServer {
+public class InfoServer {               //在regionserver和thrift中使用的web服务
   
   private static final String HBASE_APP_DIR = "hbase-webapps";
   private final org.apache.hadoop.hbase.http.HttpServer httpServer;

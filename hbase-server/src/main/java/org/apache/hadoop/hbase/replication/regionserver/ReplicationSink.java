@@ -123,7 +123,7 @@ public class ReplicationSink {
       // invocation of this method per table and cluster id.
       Map<TableName, Map<List<UUID>, List<Row>>> rowMap =
           new TreeMap<TableName, Map<List<UUID>, List<Row>>>();
-      for (WALEntry entry : entries) {
+      for (WALEntry entry : entries) {                    //遍历WALEntry
         TableName table =
             TableName.valueOf(entry.getKey().getTableName().toByteArray());
         Cell previousCell = null;
@@ -139,12 +139,12 @@ public class ReplicationSink {
             // Create new mutation
             m = CellUtil.isDelete(cell)?
               new Delete(cell.getRowArray(), cell.getRowOffset(), cell.getRowLength()):
-              new Put(cell.getRowArray(), cell.getRowOffset(), cell.getRowLength());
+              new Put(cell.getRowArray(), cell.getRowOffset(), cell.getRowLength());  //判断当前cell的类型(put or delete)
             List<UUID> clusterIds = new ArrayList<UUID>();
             for(HBaseProtos.UUID clusterId : entry.getKey().getClusterIdsList()){
               clusterIds.add(toUUID(clusterId));
             }
-            m.setClusterIds(clusterIds);
+            m.setClusterIds(clusterIds);            //设置cluster id
             addToHashMultiMap(rowMap, table, clusterIds, m);
           }
           if (CellUtil.isDelete(cell)) {
@@ -157,7 +157,7 @@ public class ReplicationSink {
         totalReplicated++;
       }
       for (Entry<TableName, Map<List<UUID>,List<Row>>> entry : rowMap.entrySet()) {
-        batch(entry.getKey(), entry.getValue().values());
+        batch(entry.getKey(), entry.getValue().values());         //写到HTable落盘应该是这步
       }
       int size = entries.size();
       this.metrics.setAgeOfLastAppliedOp(entries.get(size - 1).getKey().getWriteTime());

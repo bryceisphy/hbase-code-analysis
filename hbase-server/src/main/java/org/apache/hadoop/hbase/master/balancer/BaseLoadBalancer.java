@@ -952,7 +952,7 @@ public abstract class BaseLoadBalancer implements LoadBalancer {
     if(areSomeRegionReplicasColocated(c)) return true;
     // Check if we even need to do any load balancing
     // HBASE-3681 check sloppiness first
-    float average = cs.getLoadAverage(); // for logging
+    float average = cs.getLoadAverage(); // for logging  得到所有server的平均region个数
     int floor = (int) Math.floor(average * (1 - slop));
     int ceiling = (int) Math.ceil(average * (1 + slop));
     if (!(cs.getMaxLoad() > ceiling || cs.getMinLoad() < floor)) {

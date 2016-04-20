@@ -248,7 +248,7 @@ public class RpcServer implements RpcServerInterface {
     Collections.synchronizedList(new LinkedList<Connection>());
   //maintain a list
   //of client connections
-  private Listener listener = null;
+  private Listener listener = null;               //负责监听客户端的连接请求
   protected Responder responder = null;
   protected AuthenticationTokenSecretManager authTokenSecretMgr = null;
   protected int numConnections = 0;
@@ -269,7 +269,7 @@ public class RpcServer implements RpcServerInterface {
   private final Server server;
   private final List<BlockingServiceAndInterface> services;
 
-  private final RpcScheduler scheduler;         //RpcScheduler才代表着真正的RPC实例;
+  private final RpcScheduler scheduler;          //服务端的调度系统;
 
   private UserProvider userProvider;
 

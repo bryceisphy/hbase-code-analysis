@@ -773,9 +773,9 @@ public class ServerManager {                //管理region servers的信息供ma
     }
 
     OpenRegionRequest request = RequestConverter.buildOpenRegionRequest(server, regionOpenInfos,
-      (RecoveryMode.LOG_REPLAY == this.services.getMasterFileSystem().getLogRecoveryMode()));
+      (RecoveryMode.LOG_REPLAY == this.services.getMasterFileSystem().getLogRecoveryMode()));   //构建open region request
     try {
-      OpenRegionResponse response = admin.openRegion(null, request);
+      OpenRegionResponse response = admin.openRegion(null, request);    //发出open region请求
       return ResponseConverter.getRegionOpeningStateList(response);
     } catch (ServiceException se) {
       throw ProtobufUtil.getRemoteException(se);

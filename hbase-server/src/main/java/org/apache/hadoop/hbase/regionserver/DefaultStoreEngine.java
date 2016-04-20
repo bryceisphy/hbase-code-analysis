@@ -102,7 +102,7 @@ public class DefaultStoreEngine extends StoreEngine<
     public boolean select(List<StoreFile> filesCompacting, boolean isUserCompaction,
         boolean mayUseOffPeak, boolean forceMajor) throws IOException {
       request = compactionPolicy.selectCompaction(storeFileManager.getStorefiles(),
-          filesCompacting, isUserCompaction, mayUseOffPeak, forceMajor);
+          filesCompacting, isUserCompaction, mayUseOffPeak, forceMajor);    //利用合并策略创造request
       return request != null;
     }
 

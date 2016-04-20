@@ -52,7 +52,7 @@ import org.apache.thrift.TException;
  * thrift server dies or is shut down before everything in the queue is drained.
  *
  */
-public class IncrementCoalescer implements IncrementCoalescerMBean {      //hbase.regionserver.thrift.coalesceIncrement设置为true时会启动
+public class IncrementCoalescer implements IncrementCoalescerMBean {      //暴露给JMX管理的类
 
   /**
    * Used to identify a cell that will be incremented.

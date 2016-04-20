@@ -60,9 +60,9 @@ public class QuotaCache implements Stoppable {
       new ConcurrentHashMap<TableName, QuotaState>();
   private final ConcurrentHashMap<String, UserQuotaState> userQuotaCache =
       new ConcurrentHashMap<String, UserQuotaState>();
-  private final RegionServerServices rsServices;
+  private final RegionServerServices rsServices;          //对应着一个regionserver实例
 
-  private QuotaRefresherChore refreshChore;       //缓存更新线程
+  private QuotaRefresherChore refreshChore;               //缓存更新线程
   private boolean stopped = true;
 
   public QuotaCache(final RegionServerServices rsServices) {

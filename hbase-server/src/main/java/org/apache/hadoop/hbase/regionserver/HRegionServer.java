@@ -529,8 +529,8 @@ public class HRegionServer extends HasThread implements
     this.abortRequested = false;
     this.stopped = false;
 
-    rpcServices = createRpcServices();      //初始化该regionserver的rpc实例
-    this.startcode = System.currentTimeMillis();
+    rpcServices = createRpcServices();              //初始化该regionserver的rpc实例
+    this.startcode = System.currentTimeMillis();    //记下当前regionserver启动的时间
     if (this instanceof HMaster) {
       useThisHostnameInstead = conf.get(MASTER_HOSTNAME_KEY);
     } else {
@@ -538,7 +538,7 @@ public class HRegionServer extends HasThread implements
     }
     String hostName = shouldUseThisHostnameInstead() ? useThisHostnameInstead :
       rpcServices.isa.getHostName();
-    serverName = ServerName.valueOf(hostName, rpcServices.isa.getPort(), startcode);
+    serverName = ServerName.valueOf(hostName, rpcServices.isa.getPort(), startcode);    //将hostname作为servername
 
     rpcControllerFactory = RpcControllerFactory.instantiate(this.conf);
     rpcRetryingCallerFactory = RpcRetryingCallerFactory.instantiate(this.conf);
@@ -705,7 +705,7 @@ public class HRegionServer extends HasThread implements
    */
   protected synchronized void setupClusterConnection() throws IOException {
     if (clusterConnection == null) {
-      clusterConnection = createClusterConnection();    //初始化集群连接信息
+      clusterConnection = createClusterConnection();
       metaTableLocator = new MetaTableLocator();
     }
   }
@@ -718,7 +718,7 @@ public class HRegionServer extends HasThread implements
    */
   private void preRegistrationInitialization(){
     try {
-      setupClusterConnection();
+      setupClusterConnection();             //初始化集群连接信息
 
       // Health checker thread.
       if (isHealthCheckerConfigured()) {
@@ -825,9 +825,9 @@ public class HRegionServer extends HasThread implements
 
     // Background thread to check for compactions; needed if region has not gotten updates
     // in a while. It will take care of not checking too frequently on store-by-store basis.
-    this.compactionChecker = new CompactionChecker(this, this.threadWakeFrequency, this);
-    this.periodicFlusher = new PeriodicMemstoreFlusher(this.threadWakeFrequency, this);
-    this.leases = new Leases(this.threadWakeFrequency);
+    this.compactionChecker = new CompactionChecker(this, this.threadWakeFrequency, this);  //检查合并请求
+    this.periodicFlusher = new PeriodicMemstoreFlusher(this.threadWakeFrequency, this);   //周期性地检查memstore的flush请求
+    this.leases = new Leases(this.threadWakeFrequency);           //新建一个租约
 
     // Create the thread to clean the moved regions list
     movedRegionsCleaner = MovedRegionsCleaner.create(this);
@@ -1503,14 +1503,14 @@ public class HRegionServer extends HasThread implements
 
     CompactionChecker(final HRegionServer h, final int sleepTime,
         final Stoppable stopper) {
-      super("CompactionChecker", stopper, sleepTime);
-      this.instance = h;
+      super("CompactionChecker", stopper, sleepTime);   //调用父类core的构造方法
+      this.instance = h;              //将载体HRegionserver赋给变量instance
       LOG.info(this.getName() + " runs every " + StringUtils.formatTime(sleepTime));
 
       /* MajorCompactPriority is configurable.
        * If not set, the compaction will use default priority.
        */
-      this.majorCompactPriority = this.instance.conf.
+      this.majorCompactPriority = this.instance.conf.       //设置major合并的优先级
         getInt("hbase.regionserver.compactionChecker.majorCompactPriority",
         DEFAULT_PRIORITY);
     }
@@ -1529,11 +1529,11 @@ public class HRegionServer extends HasThread implements
               // Queue a compaction. Will recognize if major is needed.
               this.instance.compactSplitThread.requestSystemCompaction(r, s, getName()
                   + " requests compaction");
-            } else if (s.isMajorCompaction()) {
+            } else if (s.isMajorCompaction()) {       //如果是major compact
               if (majorCompactPriority == DEFAULT_PRIORITY
                   || majorCompactPriority > ((HRegion)r).getCompactPriority()) {
                 this.instance.compactSplitThread.requestCompaction(r, s, getName()
-                    + " requests major compaction; use default priority", null);
+                    + " requests major compaction; use default priority", null);    //发起compact请求
               } else {
                 this.instance.compactSplitThread.requestCompaction(r, s, getName()
                     + " requests major compaction; use configured priority",
@@ -1545,7 +1545,7 @@ public class HRegionServer extends HasThread implements
           }
         }
       }
-      iteration = (iteration == Long.MAX_VALUE) ? 0 : (iteration + 1);
+      iteration = (iteration == Long.MAX_VALUE) ? 0 : (iteration + 1);    //递增器增1
     }
   }
 

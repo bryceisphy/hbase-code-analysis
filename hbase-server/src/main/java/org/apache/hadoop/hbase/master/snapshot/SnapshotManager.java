@@ -418,7 +418,7 @@ public class SnapshotManager extends MasterProcedureManager implements Stoppable
   private synchronized void prepareToTakeSnapshot(SnapshotDescription snapshot)
       throws HBaseSnapshotException {
     FileSystem fs = master.getMasterFileSystem().getFileSystem();
-    Path workingDir = SnapshotDescriptionUtils.getWorkingSnapshotDir(snapshot, rootDir);
+    Path workingDir = SnapshotDescriptionUtils.getWorkingSnapshotDir(snapshot, rootDir);    //创建一个临时目录
     TableName snapshotTable =
         TableName.valueOf(snapshot.getTable());
 

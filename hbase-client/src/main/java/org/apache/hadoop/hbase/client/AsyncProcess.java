@@ -554,7 +554,7 @@ class AsyncProcess {        //异步提交RPC
     }
     AsyncRequestFutureImpl<CResult> ars = createAsyncRequestFuture(
         tableName, actions, ng.getNonceGroup(), getPool(pool), callback, results, results != null);
-    ars.groupAndSendMultiAction(actions, 1);
+    ars.groupAndSendMultiAction(actions, 1);              //按regionserver分门别类派出请求
     return ars;
   }
 
@@ -705,7 +705,7 @@ class AsyncProcess {        //异步提交RPC
           try {
             RpcRetryingCaller<MultiResponse> caller = createCaller(callable);
             if (callsInProgress != null) callsInProgress.add(callable);
-            res = caller.callWithoutRetries(callable, timeout);
+            res = caller.callWithoutRetries(callable, timeout);          //执行callable任务
 
             if (res == null) {
               // Cancelled
@@ -733,7 +733,7 @@ class AsyncProcess {        //异步提交RPC
                   + tableName + " processing for " + server, t);
               throw new RuntimeException(t);
         } finally {
-          decTaskCounters(multiAction.getRegions(), server);
+          decTaskCounters(multiAction.getRegions(), server);        //这里有个任务计数,计算成功任务的个数
           if (callsInProgress != null && callable != null) {
             callsInProgress.remove(callable);
           }
@@ -862,7 +862,7 @@ class AsyncProcess {        //异步提交RPC
           throw new AssertionError("Replica and non-replica actions in the same retry");
         }
         isReplica = isReplicaAction;
-        HRegionLocation loc = locs.getRegionLocation(action.getReplicaId());
+        HRegionLocation loc = locs.getRegionLocation(action.getReplicaId());   //获取这批action对应的region地址变量loc
         if (loc == null || loc.getServerName() == null) {
           if (isReplica) {
             if (unknownReplicaActions == null) {
@@ -874,7 +874,7 @@ class AsyncProcess {        //异步提交RPC
             manageLocationError(action, null);
           }
         } else {
-          byte[] regionName = loc.getRegionInfo().getRegionName();
+          byte[] regionName = loc.getRegionInfo().getRegionName();            //获取regionName
           addAction(loc.getServerName(), regionName, action, actionsByServer, nonceGroup);
         }
       }
@@ -974,7 +974,7 @@ class AsyncProcess {        //异步提交RPC
         // run all the runnables
         for (Runnable runnable : runnables) {
           if ((--actionsRemaining == 0) && reuseThread) {
-            runnable.run();
+            runnable.run();                             //这里开始运行异步程序
           } else {
             try {
               pool.submit(runnable);

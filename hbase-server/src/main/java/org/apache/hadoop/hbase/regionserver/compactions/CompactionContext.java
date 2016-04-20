@@ -34,7 +34,7 @@ import org.apache.hadoop.hbase.regionserver.StoreFile;
  */
 @InterfaceAudience.Private
 public abstract class CompactionContext {
-  protected CompactionRequest request = null;
+  protected CompactionRequest request = null;         //合并请求
 
   /**
    * Called before coprocessor preCompactSelection and should filter the candidates

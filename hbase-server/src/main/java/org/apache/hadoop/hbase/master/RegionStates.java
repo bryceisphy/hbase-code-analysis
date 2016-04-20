@@ -64,7 +64,7 @@ import com.google.common.base.Preconditions;
  * This map is used by AssignmentManager to track region states.
  */
 @InterfaceAudience.Private
-public class RegionStates {
+public class RegionStates {                             //HBase-6272
   private static final Log LOG = LogFactory.getLog(RegionStates.class);
 
   /**
